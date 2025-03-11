@@ -1,0 +1,3 @@
+# Scripting Module
+
+Implements one or more scripting backends that allow user-defined behavior, including backend-specific requirements like job queues

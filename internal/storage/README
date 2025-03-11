@@ -1,0 +1,5 @@
+# Storage Module
+
+Implements backing storage strategies for game data such as:
+* In-memory
+* Document DB

@@ -1,0 +1,4 @@
+# Network Module
+
+Handles client networking and network protocols (ex: telnet, maybe websockets in the future)
+Should also handle protocol-specific details like text coloring and formatting.

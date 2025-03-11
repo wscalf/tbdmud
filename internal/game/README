@@ -1,0 +1,4 @@
+# Game Module
+
+Models game objects like players, NPCs, mobs, rooms, and links
+Defines interfaces to other subsystems (networking, scripting, storage, etc)

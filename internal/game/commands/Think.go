@@ -1,4 +1,4 @@
-package builtins
+package commands
 
 import (
 	"github.com/wscalf/tbdmud/internal/game/commands/parameters"

@@ -1,13 +1,16 @@
 package commands
 
 import (
+	"errors"
+	"fmt"
 	"strings"
 
-	"github.com/wscalf/tbdmud/internal/game/commands/builtins"
 	"github.com/wscalf/tbdmud/internal/game/commands/parameters"
 	"github.com/wscalf/tbdmud/internal/game/jobs"
 	"github.com/wscalf/tbdmud/internal/game/world"
 )
+
+var InputError error = errors.New("invalid input")
 
 type Commands struct {
 	commands map[string]Command
@@ -20,33 +23,36 @@ func NewCommands() *Commands {
 }
 
 func (c *Commands) RegisterBuiltins() {
-	c.Register("think", builtins.Think{})
+	c.Register("think", Think{})
 }
 
 func (c *Commands) Register(name string, command Command) {
 	c.commands[name] = command
 }
 
-func (c *Commands) Prepare(p *world.Player, input string) jobs.Job {
+func (c *Commands) Prepare(p *world.Player, input string) (jobs.Job, error) {
 	name, argPart := splitCommandNameFromArgs(input)
 
 	command, ok := c.commands[name]
 	if !ok {
-		//Handle unrecognized command
-		return nil
+		return nil, fmt.Errorf("%w: unrecognized command %s: try help", InputError, name)
 	}
 
 	parameterSpec := command.GetParameters()
-	parameters := extractParameters(argPart, parameterSpec)
+	parameters, err := extractParameters(name, argPart, parameterSpec)
+
+	if err != nil {
+		return nil, err
+	}
 
 	return &commandJob{
 		command: command,
 		player:  p,
 		params:  parameters,
-	}
+	}, nil
 }
 
-func extractParameters(text string, parameterSpec []parameters.Parameter) map[string]string {
+func extractParameters(cmd string, text string, parameterSpec []parameters.Parameter) (map[string]string, error) {
 	args := make(map[string]string)
 	var value string
 
@@ -56,12 +62,12 @@ func extractParameters(text string, parameterSpec []parameters.Parameter) map[st
 			args[p.Name()] = value
 		} else {
 			if p.IsRequired() {
-				//Handle missing required parameter
+				return nil, fmt.Errorf("%w: missing required parameter %s. Try help %s", InputError, p.Name(), cmd)
 			}
 		}
 	}
 
-	return args
+	return args, nil
 }
 
 func splitCommandNameFromArgs(input string) (string, string) {

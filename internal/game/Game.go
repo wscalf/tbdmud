@@ -1,6 +1,7 @@
 package game
 
 import (
+	"errors"
 	"log/slog"
 
 	"github.com/wscalf/tbdmud/internal/game/commands"
@@ -55,7 +56,16 @@ func (g *Game) handlePlayersJoining() {
 }
 
 func (g *Game) handleCommand(player *world.Player, cmd string) {
-	job := g.commands.Prepare(player, cmd)
+	job, err := g.commands.Prepare(player, cmd)
+	if err != nil {
+		if errors.Is(err, commands.InputError) {
+			player.Send(err.Error())
+		} else {
+			player.Send("An error has occurred.")
+			slog.Error("Error processing command", "player", player.Name, "cmd", cmd, "err", err)
+		}
+		return
+	}
 
 	g.jobQueue.Enqueue(job)
 }

@@ -24,6 +24,7 @@ func NewCommands() *Commands {
 
 func (c *Commands) RegisterBuiltins() {
 	c.Register("think", Think{})
+	c.Register("help", Help{commands: c})
 }
 
 func (c *Commands) Register(name string, command Command) {

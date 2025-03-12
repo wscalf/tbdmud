@@ -7,6 +7,10 @@ type Name struct {
 	required bool
 }
 
+func NewName(name string, required bool) Name {
+	return Name{name: name, required: required}
+}
+
 func (n Name) Name() string {
 	return n.name
 }

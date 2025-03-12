@@ -5,7 +5,7 @@ import (
 	"github.com/wscalf/tbdmud/internal/game/world"
 )
 
-var params = []parameters.Parameter{parameters.NewFreeText("thought")}
+var thinkparams = []parameters.Parameter{parameters.NewFreeText("thought")}
 
 type Think struct {
 }
@@ -15,7 +15,7 @@ func (t Think) GetDescription() string {
 }
 
 func (t Think) GetParameters() []parameters.Parameter {
-	return params
+	return thinkparams
 }
 
 func (t Think) Execute(player *world.Player, args map[string]string) {

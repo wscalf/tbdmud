@@ -29,6 +29,9 @@ func newTelnetClient(reader telnet.Reader, writer telnet.Writer) *TelnetClient {
 }
 
 func (t *TelnetClient) Send(msg string) error {
+	if !strings.HasSuffix(msg, "\n") {
+		msg = msg + "\n"
+	}
 	_, err := t.writer.Write([]byte(msg))
 	return err
 }

@@ -1,4 +1,4 @@
-package game
+package world
 
 import (
 	"github.com/wscalf/tbdmud/internal/game/contracts"

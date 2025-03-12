@@ -1,6 +1,8 @@
 package net
 
 import (
+	"errors"
+	"io"
 	"strings"
 
 	"github.com/reiver/go-telnet"
@@ -53,7 +55,9 @@ func (t *TelnetClient) Run() {
 		if n <= 0 && nil == err {
 			continue
 		} else if n <= 0 && nil != err {
-			t.lastError = err
+			if !errors.Is(err, io.EOF) {
+				t.lastError = err
+			}
 			break
 		}
 

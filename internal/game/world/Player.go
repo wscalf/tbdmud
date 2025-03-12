@@ -1,4 +1,4 @@
-package game
+package world
 
 import (
 	"log/slog"
@@ -8,25 +8,25 @@ import (
 
 type Player struct {
 	Object
-	client   contracts.Client
-	commands *Commands
+	client  contracts.Client
+	onInput func(*Player, string)
 }
 
-func NewPlayer(id string, name string, script contracts.ScriptObject, client contracts.Client, commands *Commands) *Player {
+func NewPlayer(id string, name string, script contracts.ScriptObject, client contracts.Client, onInput func(*Player, string)) *Player {
 	return &Player{
 		Object: Object{
 			ID:     id,
 			Name:   name,
 			script: script,
 		},
-		client:   client,
-		commands: commands,
+		client:  client,
+		onInput: onInput,
 	}
 }
 
 func (p *Player) Run() {
 	for input := range p.client.Recv() {
-		p.commands.Execute(p, input)
+		p.onInput(p, input)
 	}
 
 	err := p.client.LastError()

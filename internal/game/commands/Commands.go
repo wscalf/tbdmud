@@ -25,6 +25,7 @@ func NewCommands() *Commands {
 func (c *Commands) RegisterBuiltins() {
 	c.Register("think", Think{})
 	c.Register("help", Help{commands: c})
+	c.Register("say", Say{})
 }
 
 func (c *Commands) Register(name string, command Command) {
@@ -32,7 +33,7 @@ func (c *Commands) Register(name string, command Command) {
 }
 
 func (c *Commands) Prepare(p *world.Player, input string) (jobs.Job, error) {
-	name, argPart := splitCommandNameFromArgs(input)
+	name, argPart := SplitCommandNameFromArgs(input)
 
 	command, ok := c.commands[name]
 	if !ok {
@@ -40,7 +41,7 @@ func (c *Commands) Prepare(p *world.Player, input string) (jobs.Job, error) {
 	}
 
 	parameterSpec := command.GetParameters()
-	parameters, err := extractParameters(name, argPart, parameterSpec)
+	parameters, err := ExtractParameters(name, argPart, parameterSpec)
 
 	if err != nil {
 		return nil, err
@@ -53,7 +54,7 @@ func (c *Commands) Prepare(p *world.Player, input string) (jobs.Job, error) {
 	}, nil
 }
 
-func extractParameters(cmd string, text string, parameterSpec []parameters.Parameter) (map[string]string, error) {
+func ExtractParameters(cmd string, text string, parameterSpec []parameters.Parameter) (map[string]string, error) {
 	args := make(map[string]string)
 	var value string
 
@@ -71,7 +72,7 @@ func extractParameters(cmd string, text string, parameterSpec []parameters.Param
 	return args, nil
 }
 
-func splitCommandNameFromArgs(input string) (string, string) {
+func SplitCommandNameFromArgs(input string) (string, string) {
 	firstSpace := strings.Index(input, " ")
 	if firstSpace < 0 {
 		return input, "" //It's just the command name

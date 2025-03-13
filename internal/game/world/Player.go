@@ -1,6 +1,7 @@
 package world
 
 import (
+	"fmt"
 	"log/slog"
 
 	"github.com/wscalf/tbdmud/internal/game/contracts"
@@ -9,33 +10,75 @@ import (
 type Player struct {
 	Object
 	client  contracts.Client
+	room    *Room
+	outbox  chan output
 	onInput func(*Player, string)
 }
 
-func NewPlayer(id string, name string, script contracts.ScriptObject, client contracts.Client, onInput func(*Player, string)) *Player {
+func NewPlayer(id string, name string) *Player {
 	return &Player{
 		Object: Object{
-			ID:     id,
-			Name:   name,
-			script: script,
+			ID:   id,
+			Name: name,
 		},
-		client:  client,
-		onInput: onInput,
+		outbox: make(chan output, 10),
 	}
+}
+
+func (p *Player) AttachScript(script contracts.ScriptObject) {
+	p.script = script
+}
+
+func (p *Player) AttachClient(client contracts.Client) {
+	p.client = client
+}
+
+func (p *Player) SetInputHandler(onInput func(*Player, string)) {
+	p.onInput = onInput
+}
+
+func (p *Player) GetRoom() *Room {
+	return p.room
+}
+
+func (p *Player) Join(r *Room) {
+	r.addPlayer(p)
+	p.room = r
+}
+
+func (p *Player) Leave() {
+	p.room.removePlayer(p)
+	p.room = nil
 }
 
 func (p *Player) Run() {
-	for input := range p.client.Recv() {
-		p.onInput(p, input)
-	}
+	inbox := p.client.Recv()
+	active := true
 
-	err := p.client.LastError()
-	if err != nil {
-		slog.Error("Communication error from player", "name", p.Name, "error", err)
+	for active {
+		select {
+		case input, ok := <-inbox:
+			if ok {
+				p.onInput(p, input)
+			} else {
+				err := p.client.LastError()
+				if err != nil {
+					slog.Error("Communication error from player", "name", p.Name, "error", err)
+				}
+				active = false
+			}
+		case output := <-p.outbox:
+			msg := fmt.Sprintf(output.template, output.params...)
+			p.client.Send(msg)
+		}
 	}
-	//Handle disconnect
 }
 
-func (p *Player) Send(text string) error {
-	return p.client.Send(text)
+func (p *Player) Send(template string, params ...interface{}) {
+	p.outbox <- output{template: template, params: params}
+}
+
+type output struct {
+	template string
+	params   []interface{}
 }

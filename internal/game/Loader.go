@@ -6,7 +6,9 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 
+	"github.com/wscalf/tbdmud/internal/text"
 	"gopkg.in/yaml.v3"
 )
 
@@ -17,8 +19,8 @@ type Loader struct {
 func (l *Loader) GetRooms() (map[string]*Room, error) {
 	//Load all roomdata from YAML
 	rooms := map[string]*Room{}
-	roomsPath := filepath.Join(l.dataPath, "rooms")
-	roomsData, err := loadRoomsDataFromAllFiles(roomsPath)
+	folder := filepath.Join(l.dataPath, "rooms")
+	roomsData, err := loadRoomsDataFromAllFiles(folder)
 	if err != nil {
 		return rooms, err
 	}
@@ -127,4 +129,36 @@ type Metadata struct {
 	Banner      string `yaml:"banner"`
 	ChargenRoom string `yaml:"chargen_room"`
 	DefaultRoom string `yaml:"default_room"`
+}
+
+func (l *Loader) GetLayouts() (map[string]*text.Layout, error) {
+	layouts := map[string]*text.Layout{}
+	folder := filepath.Join(l.dataPath, "layouts")
+	err := filepath.WalkDir(folder, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if filepath.Ext(d.Name()) != ".tmpl" {
+			return nil
+		}
+
+		name := strings.TrimSuffix(d.Name(), ".tmpl")
+		body, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+
+		layout, err := text.NewLayout(name, string(body))
+		if err != nil {
+			return err
+		}
+
+		layouts[name] = layout
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return layouts, nil
 }

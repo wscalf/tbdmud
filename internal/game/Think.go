@@ -20,5 +20,5 @@ func (t Think) GetParameters() []parameters.Parameter {
 func (t Think) Execute(player *Player, args map[string]string) {
 	thought := args["thought"]
 
-	player.Send(thought)
+	player.Sendf(thought)
 }

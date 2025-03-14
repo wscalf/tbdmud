@@ -18,7 +18,7 @@ func (s Say) GetParameters() []parameters.Parameter {
 
 func (s Say) Execute(player *Player, args map[string]string) {
 	text := args["text"]
-	player.Send(`You say, "%s"`, text)
+	player.Sendf(`You say, "%s"`, text)
 
 	room := player.GetRoom()
 	room.SendToAllExcept(player, `%s says, "%s"`, player.Name, text)

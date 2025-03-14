@@ -6,20 +6,23 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/wscalf/tbdmud/internal/game/parameters"
+	"github.com/wscalf/tbdmud/internal/text"
 )
 
 type Login struct {
 	banner string
 	//Temporary placeholder for data that would be kept in the DB
-	accounts   map[string]*Account
-	characters map[string]*Player
+	accounts            map[string]*Account
+	characters          map[string]*Player
+	defaultPlayerLayout *text.Layout
 }
 
-func NewLogin(banner string) *Login {
+func NewLogin(banner string, playerLayout *text.Layout) *Login {
 	return &Login{
-		banner:     banner,
-		accounts:   map[string]*Account{},
-		characters: map[string]*Player{},
+		banner:              banner,
+		accounts:            map[string]*Account{},
+		characters:          map[string]*Player{},
+		defaultPlayerLayout: playerLayout,
 	}
 }
 
@@ -123,6 +126,7 @@ func (l *Login) selectOrCreateCharacter(client Client, account *Account) *Player
 
 			entry := account.characters[selection]
 			character := l.characters[entry.id] //Simulates looking up the character in the DB
+			character.SetLayout(l.defaultPlayerLayout)
 			return character
 		}
 

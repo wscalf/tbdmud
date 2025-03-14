@@ -3,6 +3,8 @@ package game
 import (
 	"errors"
 	"log/slog"
+
+	"github.com/wscalf/tbdmud/internal/text"
 )
 
 type Game struct {
@@ -12,9 +14,10 @@ type Game struct {
 	jobQueue *JobQueue
 	world    *World
 	login    *Login
+	layouts  map[string]*text.Layout
 }
 
-func NewGame(commands *Commands, listener ClientListener, world *World, login *Login) *Game {
+func NewGame(commands *Commands, listener ClientListener, world *World, login *Login, layouts map[string]*text.Layout) *Game {
 	return &Game{
 		commands: commands,
 		listener: listener,
@@ -22,6 +25,7 @@ func NewGame(commands *Commands, listener ClientListener, world *World, login *L
 		jobQueue: NewJobQueue(100),
 		world:    world,
 		login:    login,
+		layouts:  layouts,
 	}
 }
 
@@ -82,9 +86,9 @@ func (g *Game) handleCommand(player *Player, cmd string) {
 	job, err := g.commands.Prepare(player, cmd)
 	if err != nil {
 		if errors.Is(err, InputError) {
-			player.Send(err.Error())
+			player.Sendf(err.Error())
 		} else {
-			player.Send("An error has occurred.")
+			player.Sendf("An error has occurred.")
 			slog.Error("Error processing command", "player", player.Name, "cmd", cmd, "err", err)
 		}
 		return

@@ -10,6 +10,14 @@ type Link struct {
 	to      *Room
 }
 
+func (l *Link) GetProperties() map[string]interface{} {
+	return map[string]interface{}{
+		"name": l.Name,
+		"desc": l.Description,
+		"cmd":  l.command,
+	}
+}
+
 // Run implements jobs.Job.
 func (l *Link) GetDescription() string {
 	return l.Description //Probably not used

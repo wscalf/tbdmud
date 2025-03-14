@@ -19,20 +19,28 @@ func main() {
 		return
 	}
 
+	layouts, err := loader.GetLayouts()
+	if err != nil {
+		slog.Error("Failed to load layouts. Exiting..", "err", err)
+		return
+	}
+
 	rooms, err := loader.GetRooms()
 	if err != nil {
 		slog.Error("Failed to load rooms. Exiting..", "err", err)
 		return
 	}
+
+	world.SetRoomLayout(layouts["room"])
 	world.InitializeRooms(rooms)
 	world.SetSystemRooms(meta.ChargenRoom, meta.DefaultRoom)
 
-	login := game.NewLogin(meta.Banner)
+	login := game.NewLogin(meta.Banner, layouts["player"])
 
 	telnetListener := net.NewTelnetListener(defaultPort)
 	commands := game.NewCommands()
 	commands.RegisterBuiltins()
-	game := game.NewGame(commands, telnetListener, world, login)
+	game := game.NewGame(commands, telnetListener, world, login, layouts)
 
 	game.Run()
 }

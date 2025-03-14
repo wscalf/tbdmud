@@ -3,30 +3,25 @@ package game
 import (
 	"errors"
 	"log/slog"
-
-	"github.com/wscalf/tbdmud/internal/game/commands"
-	"github.com/wscalf/tbdmud/internal/game/contracts"
-	"github.com/wscalf/tbdmud/internal/game/jobs"
-	"github.com/wscalf/tbdmud/internal/game/world"
 )
 
 type Game struct {
-	listener     contracts.ClientListener
-	commands     *commands.Commands
-	players      map[string]*world.Player
-	jobQueue     *jobs.JobQueue
-	startingRoom *world.Room
-	login        *Login
+	listener ClientListener
+	commands *Commands
+	players  map[string]*Player
+	jobQueue *JobQueue
+	world    *World
+	login    *Login
 }
 
-func NewGame(commands *commands.Commands, listener contracts.ClientListener, startingRoom *world.Room, login *Login) *Game {
+func NewGame(commands *Commands, listener ClientListener, world *World, login *Login) *Game {
 	return &Game{
-		commands:     commands,
-		listener:     listener,
-		players:      make(map[string]*world.Player),
-		jobQueue:     jobs.NewJobQueue(100),
-		startingRoom: startingRoom,
-		login:        login,
+		commands: commands,
+		listener: listener,
+		players:  make(map[string]*Player),
+		jobQueue: NewJobQueue(100),
+		world:    world,
+		login:    login,
 	}
 }
 
@@ -74,19 +69,19 @@ func (g *Game) handlePlayersJoining() {
 }
 
 type JoinWorldJob struct {
-	player *world.Player
+	player *Player
 	game   *Game
 }
 
 func (j JoinWorldJob) Run() {
-	j.player.Join(j.game.startingRoom) //For persistence would need to retrieve the character's last room from storage
+	j.player.Join(j.game.world.chargen) //For persistence would need to retrieve the character's last room from storage
 	j.player.SetInputHandler(j.game.handleCommand)
 }
 
-func (g *Game) handleCommand(player *world.Player, cmd string) {
+func (g *Game) handleCommand(player *Player, cmd string) {
 	job, err := g.commands.Prepare(player, cmd)
 	if err != nil {
-		if errors.Is(err, commands.InputError) {
+		if errors.Is(err, InputError) {
 			player.Send(err.Error())
 		} else {
 			player.Send("An error has occurred.")

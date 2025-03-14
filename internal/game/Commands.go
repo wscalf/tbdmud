@@ -1,13 +1,11 @@
-package commands
+package game
 
 import (
 	"errors"
 	"fmt"
 	"strings"
 
-	"github.com/wscalf/tbdmud/internal/game/commands/parameters"
-	"github.com/wscalf/tbdmud/internal/game/jobs"
-	"github.com/wscalf/tbdmud/internal/game/world"
+	"github.com/wscalf/tbdmud/internal/game/parameters"
 )
 
 var InputError error = errors.New("invalid input")
@@ -32,11 +30,20 @@ func (c *Commands) Register(name string, command Command) {
 	c.commands[name] = command
 }
 
-func (c *Commands) Prepare(p *world.Player, input string) (jobs.Job, error) {
+func (c *Commands) Prepare(p *Player, input string) (Job, error) {
 	name, argPart := SplitCommandNameFromArgs(input)
+	var command Command
+	room := p.GetRoom()
 
-	command, ok := c.commands[name]
-	if !ok {
+	if room != nil {
+		command = room.FindLocalCommand(name)
+	}
+
+	if command == nil {
+		command = c.commands[name]
+	}
+
+	if command == nil {
 		return nil, fmt.Errorf("%w: unrecognized command %s: try help", InputError, name)
 	}
 
@@ -86,7 +93,7 @@ func SplitCommandNameFromArgs(input string) (string, string) {
 
 type commandJob struct {
 	command Command
-	player  *world.Player
+	player  *Player
 	params  map[string]string
 }
 

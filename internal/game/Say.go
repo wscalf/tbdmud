@@ -1,8 +1,7 @@
-package commands
+package game
 
 import (
-	"github.com/wscalf/tbdmud/internal/game/commands/parameters"
-	"github.com/wscalf/tbdmud/internal/game/world"
+	"github.com/wscalf/tbdmud/internal/game/parameters"
 )
 
 var sayparams []parameters.Parameter = []parameters.Parameter{parameters.NewFreeText("text")}
@@ -17,7 +16,7 @@ func (s Say) GetParameters() []parameters.Parameter {
 	return sayparams
 }
 
-func (s Say) Execute(player *world.Player, args map[string]string) {
+func (s Say) Execute(player *Player, args map[string]string) {
 	text := args["text"]
 	player.Send(`You say, "%s"`, text)
 

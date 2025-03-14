@@ -1,7 +1,6 @@
 package game
 
 import (
-	"github.com/wscalf/tbdmud/internal/game/world"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -18,7 +17,7 @@ func NewAccount(login string) *Account {
 	}
 }
 
-func (a *Account) AddCharacter(p *world.Player) {
+func (a *Account) AddCharacter(p *Player) {
 	entry := characterEntry{
 		id:   p.ID,
 		name: p.Name,

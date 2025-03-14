@@ -1,24 +1,45 @@
-package world
-
-import (
-	"github.com/wscalf/tbdmud/internal/game/contracts"
-)
+package game
 
 type Room struct {
 	Object
 	players map[string]*Player
+	links   map[string]*Link
 }
 
-func NewRoom(id string, name string, script contracts.ScriptObject) *Room {
+func NewRoom(id string, name string, description string, script ScriptObject) *Room {
 	return &Room{
 		Object: Object{
 			ID:          id,
 			Name:        name,
-			Description: "",
+			Description: description,
 			script:      script,
 		},
 		players: map[string]*Player{},
+		links:   map[string]*Link{},
 	}
+}
+
+func (r *Room) Link(command string, name string, description string, to *Room) {
+	link := &Link{
+		Object: Object{
+			ID:          r.ID + "_" + command,
+			Name:        name,
+			Description: description,
+			script:      nil,
+		},
+		command: command,
+		to:      to,
+	}
+
+	r.links[command] = link
+}
+
+func (r *Room) FindLocalCommand(command string) Command {
+	if link, ok := r.links[command]; ok {
+		return link
+	}
+
+	return nil
 }
 
 func (r *Room) SendToAll(template string, params ...interface{}) {

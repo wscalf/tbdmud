@@ -5,28 +5,25 @@ import (
 	"strconv"
 
 	"github.com/google/uuid"
-	"github.com/wscalf/tbdmud/internal/game/commands"
-	"github.com/wscalf/tbdmud/internal/game/commands/parameters"
-	"github.com/wscalf/tbdmud/internal/game/contracts"
-	"github.com/wscalf/tbdmud/internal/game/world"
+	"github.com/wscalf/tbdmud/internal/game/parameters"
 )
 
 type Login struct {
 	banner string
 	//Temporary placeholder for data that would be kept in the DB
 	accounts   map[string]*Account
-	characters map[string]*world.Player
+	characters map[string]*Player
 }
 
 func NewLogin(banner string) *Login {
 	return &Login{
 		banner:     banner,
 		accounts:   map[string]*Account{},
-		characters: map[string]*world.Player{},
+		characters: map[string]*Player{},
 	}
 }
 
-func (l *Login) Process(client contracts.Client) *world.Player {
+func (l *Login) Process(client Client) *Player {
 	client.Send(l.banner)
 	account := l.loginOrRegister(client)
 	if account == nil {
@@ -41,16 +38,16 @@ func (l *Login) Process(client contracts.Client) *world.Player {
 	return character
 }
 
-func (l *Login) loginOrRegister(client contracts.Client) *Account {
+func (l *Login) loginOrRegister(client Client) *Account {
 	const prompt string = "Use `login <username> <password>` to log in, `register <username> <password>` to register, `help` to repeat this message, or `quit` to disconnect."
 	paramspec := []parameters.Parameter{parameters.NewName("login", true), parameters.NewName("password", true)}
 	client.Send(prompt)
 	for input := range client.Recv() {
-		cmd, argpart := commands.SplitCommandNameFromArgs(input)
+		cmd, argpart := SplitCommandNameFromArgs(input)
 
 		switch cmd {
 		case "login", "register":
-			params, err := commands.ExtractParameters(cmd, argpart, paramspec)
+			params, err := ExtractParameters(cmd, argpart, paramspec)
 			if err != nil {
 				client.Send(err.Error())
 				continue
@@ -107,7 +104,7 @@ func (l *Login) tryRegister(login string, password string) (*Account, error) {
 	return account, nil
 }
 
-func (l *Login) selectOrCreateCharacter(client contracts.Client, account *Account) *world.Player {
+func (l *Login) selectOrCreateCharacter(client Client, account *Account) *Player {
 	characters := account.characters
 	client.Send("Select a character:")
 	for i, entry := range characters {
@@ -131,12 +128,12 @@ func (l *Login) selectOrCreateCharacter(client contracts.Client, account *Accoun
 
 		//Should be a new character then
 		paramspec := []parameters.Parameter{parameters.NewName("name", true)}
-		cmd, argpart := commands.SplitCommandNameFromArgs(input)
+		cmd, argpart := SplitCommandNameFromArgs(input)
 		if cmd != "create" {
 			client.Send("Please select one of the above options.")
 			continue
 		}
-		params, err := commands.ExtractParameters(cmd, argpart, paramspec)
+		params, err := ExtractParameters(cmd, argpart, paramspec)
 		if err != nil {
 			client.Send(err.Error())
 			continue
@@ -144,7 +141,7 @@ func (l *Login) selectOrCreateCharacter(client contracts.Client, account *Accoun
 
 		name := params["name"]
 		id := uuid.NewString()
-		character := world.NewPlayer(id, name)
+		character := NewPlayer(id, name)
 		account.AddCharacter(character) //Changes account which would need to be written back to the DB
 		l.characters[id] = character    //Simulates saving the new character to the DB
 		return character

@@ -1,15 +1,13 @@
-package world
+package game
 
 import (
 	"fmt"
 	"log/slog"
-
-	"github.com/wscalf/tbdmud/internal/game/contracts"
 )
 
 type Player struct {
 	Object
-	client  contracts.Client
+	client  Client
 	room    *Room
 	outbox  chan output
 	onInput func(*Player, string)
@@ -25,11 +23,11 @@ func NewPlayer(id string, name string) *Player {
 	}
 }
 
-func (p *Player) AttachScript(script contracts.ScriptObject) {
+func (p *Player) AttachScript(script ScriptObject) {
 	p.script = script
 }
 
-func (p *Player) AttachClient(client contracts.Client) {
+func (p *Player) AttachClient(client Client) {
 	p.client = client
 }
 

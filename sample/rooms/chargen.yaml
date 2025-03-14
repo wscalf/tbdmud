@@ -1,0 +1,10 @@
+---
+id: chargen
+name: Character Creation
+desc: >
+  The place where you'd make a character.
+links:
+  - name: done
+    cmd: done
+    to: start
+    desc: The way into the game.

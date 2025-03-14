@@ -1,8 +1,7 @@
-package commands
+package game
 
 import (
-	"github.com/wscalf/tbdmud/internal/game/commands/parameters"
-	"github.com/wscalf/tbdmud/internal/game/world"
+	"github.com/wscalf/tbdmud/internal/game/parameters"
 )
 
 var thinkparams = []parameters.Parameter{parameters.NewFreeText("thought")}
@@ -18,7 +17,7 @@ func (t Think) GetParameters() []parameters.Parameter {
 	return thinkparams
 }
 
-func (t Think) Execute(player *world.Player, args map[string]string) {
+func (t Think) Execute(player *Player, args map[string]string) {
 	thought := args["thought"]
 
 	player.Send(thought)

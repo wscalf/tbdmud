@@ -1,8 +1,7 @@
-package commands
+package game
 
 import (
-	"github.com/wscalf/tbdmud/internal/game/commands/parameters"
-	"github.com/wscalf/tbdmud/internal/game/world"
+	"github.com/wscalf/tbdmud/internal/game/parameters"
 )
 
 var helpparams []parameters.Parameter = []parameters.Parameter{parameters.NewName("cmd", false)}
@@ -19,7 +18,7 @@ func (h Help) GetParameters() []parameters.Parameter {
 	return helpparams
 }
 
-func (h Help) Execute(player *world.Player, params map[string]string) {
+func (h Help) Execute(player *Player, params map[string]string) {
 	if name, ok := params["cmd"]; ok {
 		//A specific command was passed
 		if cmd, ok := h.commands.commands[name]; ok {

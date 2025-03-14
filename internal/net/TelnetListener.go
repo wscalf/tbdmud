@@ -4,12 +4,12 @@ import (
 	"fmt"
 
 	"github.com/reiver/go-telnet"
-	"github.com/wscalf/tbdmud/internal/game/contracts"
+	"github.com/wscalf/tbdmud/internal/game"
 )
 
 type TelnetListener struct {
 	telnet.Server
-	clients   chan contracts.Client
+	clients   chan game.Client
 	lastError error
 }
 
@@ -20,7 +20,7 @@ func NewTelnetListener(port int) *TelnetListener {
 			TLSConfig: nil,
 			Logger:    nil,
 		},
-		clients: make(chan contracts.Client),
+		clients: make(chan game.Client),
 	}
 
 	listener.Handler = listener
@@ -28,8 +28,8 @@ func NewTelnetListener(port int) *TelnetListener {
 	return listener
 }
 
-func (t *TelnetListener) Listen() (chan contracts.Client, error) {
-	t.clients = make(chan contracts.Client)
+func (t *TelnetListener) Listen() (chan game.Client, error) {
+	t.clients = make(chan game.Client)
 	go t.ListenAndServe()
 	return t.clients, nil
 }

@@ -1,4 +1,4 @@
-package contracts
+package game
 
 type ScriptSystem interface {
 }

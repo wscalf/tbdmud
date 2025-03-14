@@ -1,0 +1,20 @@
+---
+id: start
+name: Room A
+desc: >
+  A room. It's nothing special.
+links:
+  - cmd: n
+    name: next
+    to: next
+    desc: Deeper into the dungeon.
+---
+id: next
+name: Room B
+desc: >
+  Another room. It's not special either.
+links:
+  - cmd: p
+    name: prev
+    to: start
+    desc: Back the way you came.

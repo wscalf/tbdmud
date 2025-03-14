@@ -1,4 +1,4 @@
-package jobs
+package game
 
 type JobQueue struct {
 	jobs chan Job

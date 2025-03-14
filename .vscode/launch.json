@@ -9,8 +9,7 @@
         "type": "go",
         "request": "launch",
         "mode": "exec",
-        "program": "${workspaceFolder}/bin/tbdmud",
-        "cwd": "${workspaceFolder}/bin"
+        "program": "${workspaceFolder}/bin/tbdmud"
     }
     ]
 }

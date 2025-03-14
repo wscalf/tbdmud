@@ -8,8 +8,8 @@ import (
 )
 
 func main() {
-	defaultPort := 4000      //Make parameter
-	worldPath := "../sample" //Make parameter
+	defaultPort := 4000     //Make parameter
+	worldPath := "./sample" //Make parameter
 
 	loader := game.NewLoader(worldPath)
 	world := game.NewWorld()

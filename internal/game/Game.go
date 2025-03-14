@@ -46,24 +46,26 @@ func (g *Game) handlePlayersJoining() {
 	}
 
 	for client := range clients {
-		p := g.login.Process(client)
-		if p == nil {
-			client.Disconnect()
-			continue
-		}
-
-		g.players[p.ID] = p
-		p.AttachClient(client)
-		p.SetInputHandler(g.handleCommand)
 		go func() {
+			p := g.login.Process(client)
+			if p == nil {
+				client.Disconnect()
+				return
+			}
+
+			g.players[p.ID] = p
+			p.AttachClient(client)
+			p.SetInputHandler(g.handleCommand)
+
 			g.jobQueue.Enqueue(JoinWorldJob{
 				player: p,
 				game:   g,
 			})
+
 			p.Run()
+
 			delete(g.players, p.ID)
 		}()
-
 	}
 
 	err = g.listener.LastError()

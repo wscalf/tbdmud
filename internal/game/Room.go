@@ -45,6 +45,10 @@ func (r *Room) FindLocalCommand(command string) Command {
 	return nil
 }
 
+func (r *Room) FindPlayer(name string) *Player {
+	return r.players[name]
+}
+
 func (r *Room) Describe() text.FormatJob {
 	return r.layout.Prepare(r)
 }
@@ -87,13 +91,13 @@ func (r *Room) SendToAllExcept(player *Player, template string, params ...interf
 }
 
 func (r *Room) addPlayer(p *Player) {
-	r.players[p.ID] = p
+	r.players[p.Name] = p
 
 	p.Send(r.Describe())
 }
 
 func (r *Room) removePlayer(p *Player) {
-	delete(r.players, p.ID)
+	delete(r.players, p.Name)
 
 	p.Sendf("You left: %s", r.Name)
 }

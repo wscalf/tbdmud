@@ -3,6 +3,7 @@ package game
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"github.com/wscalf/tbdmud/internal/game/parameters"
@@ -24,6 +25,7 @@ func (c *Commands) RegisterBuiltins() {
 	c.Register("think", Think{})
 	c.Register("help", Help{commands: c})
 	c.Register("say", Say{})
+	c.Register("look", Look{})
 }
 
 func (c *Commands) Register(name string, command Command) {
@@ -35,10 +37,11 @@ func (c *Commands) Prepare(p *Player, input string) (Job, error) {
 	var command Command
 	room := p.GetRoom()
 
-	if room != nil {
-		command = room.FindLocalCommand(name)
+	if room == nil {
+		slog.Error("player tried to execute a command while not in a room.", "player", p.Name)
+		return nil, fmt.Errorf("internal error")
 	}
-
+	command = room.FindLocalCommand(name)
 	if command == nil {
 		command = c.commands[name]
 	}

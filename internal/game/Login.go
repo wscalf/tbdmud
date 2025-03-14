@@ -148,6 +148,7 @@ func (l *Login) selectOrCreateCharacter(client Client, account *Account) *Player
 		character := NewPlayer(id, name)
 		account.AddCharacter(character) //Changes account which would need to be written back to the DB
 		l.characters[id] = character    //Simulates saving the new character to the DB
+		character.SetLayout(l.defaultPlayerLayout)
 		return character
 	}
 

@@ -6,7 +6,7 @@ import (
 
 type Link struct {
 	Object
-	command string
+	Command string
 	to      *Room
 }
 
@@ -14,7 +14,7 @@ func (l *Link) GetProperties() map[string]interface{} {
 	return map[string]interface{}{
 		"name": l.Name,
 		"desc": l.Description,
-		"cmd":  l.command,
+		"cmd":  l.Command,
 	}
 }
 

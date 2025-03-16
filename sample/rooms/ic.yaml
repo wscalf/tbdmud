@@ -6,6 +6,7 @@ desc: >
 links:
   - cmd: n
     name: next
+    type: Lockable
     to: next
     desc: Deeper into the dungeon.
 ---

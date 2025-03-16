@@ -30,7 +30,7 @@ func (r *Room) Link(command string, name string, description string, to *Room, s
 			Description: description,
 			script:      nil,
 		},
-		command: command,
+		Command: command,
 		to:      to,
 	}
 

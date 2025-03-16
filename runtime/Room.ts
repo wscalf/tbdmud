@@ -28,4 +28,12 @@ class Room {
 
         return links
     }
+
+    SendToAll(pattern: string, ...args: string[]) {
+        this.native.SendToAll(pattern, ...args);
+    }
+
+    SendToAllExcept(player: Player, pattern: string, ...args: string[]) {
+        this.native.SendToAllExcept(player["native"], pattern, ...args);
+    }
 }

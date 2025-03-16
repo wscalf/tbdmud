@@ -8,6 +8,10 @@ class Link {
         this.native.Name = value;
     }
 
+    get Command(): string {
+        return this.native.Command;
+    }
+
     Move(player: Player, to: Room) {
         this.native.Move(player["native"], to["native"]);
     }

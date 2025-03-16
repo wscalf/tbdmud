@@ -16,6 +16,7 @@ declare class Link {
     private native;
     get Name(): string;
     set Name(value: string);
+    get Command(): string;
     Move(player: Player, to: Room): void;
 }
 declare class Player {
@@ -31,4 +32,6 @@ declare class Room {
     set Name(value: string);
     get Players(): Player[];
     get Links(): Link[];
+    SendToAll(pattern: string, ...args: string[]): void;
+    SendToAllExcept(player: Player, pattern: string, ...args: string[]): void;
 }

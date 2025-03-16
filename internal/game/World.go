@@ -7,21 +7,28 @@ type World struct {
 	defaultRoom       *Room
 	rooms             map[string]*Room
 	defaultRoomLayout *text.Layout
+	scriptSystem      ScriptSystem
+	defaultRoomType   string
 }
 
-func NewWorld() *World {
+func NewWorld(scriptSystem ScriptSystem, defaultRoomType string) *World {
 	return &World{
-		chargen:     nil,
-		defaultRoom: nil,
-		rooms:       map[string]*Room{},
+		chargen:         nil,
+		defaultRoom:     nil,
+		rooms:           map[string]*Room{},
+		scriptSystem:    scriptSystem,
+		defaultRoomType: defaultRoomType,
 	}
 }
 
 func (w *World) InitializeRooms(rooms map[string]*Room) {
-	if w.defaultRoomLayout != nil {
-		for _, r := range rooms {
+	for _, r := range rooms {
+		if w.defaultRoomLayout != nil {
 			r.layout = w.defaultRoomLayout
 		}
+
+		script, _ := w.scriptSystem.Wrap(r, w.defaultRoomType)
+		r.AttachScript(script)
 	}
 	w.rooms = rooms
 }

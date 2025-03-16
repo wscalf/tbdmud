@@ -8,24 +8,28 @@ import (
 )
 
 type Game struct {
-	listener ClientListener
-	commands *Commands
-	players  map[string]*Player
-	jobQueue *JobQueue
-	world    *World
-	login    *Login
-	layouts  map[string]*text.Layout
+	listener          ClientListener
+	commands          *Commands
+	players           map[string]*Player
+	jobQueue          *JobQueue
+	world             *World
+	login             *Login
+	layouts           map[string]*text.Layout
+	scriptSystem      ScriptSystem
+	defaultPlayerType string
 }
 
-func NewGame(commands *Commands, listener ClientListener, world *World, login *Login, layouts map[string]*text.Layout) *Game {
+func NewGame(commands *Commands, listener ClientListener, world *World, login *Login, layouts map[string]*text.Layout, scriptSystem ScriptSystem, defaultPlayerType string) *Game {
 	return &Game{
-		commands: commands,
-		listener: listener,
-		players:  make(map[string]*Player),
-		jobQueue: NewJobQueue(100),
-		world:    world,
-		login:    login,
-		layouts:  layouts,
+		commands:          commands,
+		listener:          listener,
+		players:           make(map[string]*Player),
+		jobQueue:          NewJobQueue(100),
+		world:             world,
+		login:             login,
+		layouts:           layouts,
+		scriptSystem:      scriptSystem,
+		defaultPlayerType: defaultPlayerType,
 	}
 }
 
@@ -56,6 +60,8 @@ func (g *Game) handlePlayersJoining() {
 			g.players[p.ID] = p
 			p.AttachClient(client)
 			p.SetInputHandler(g.handleCommand)
+			script, _ := g.scriptSystem.Wrap(p, g.defaultPlayerType)
+			p.AttachScript(script)
 
 			g.jobQueue.Enqueue(JoinWorldJob{
 				player: p,
@@ -87,7 +93,7 @@ func (j JoinWorldJob) Run() {
 func (g *Game) handleCommand(player *Player, cmd string) {
 	job, err := g.commands.Prepare(player, cmd)
 	if err != nil {
-		if errors.Is(err, InputError) {
+		if errors.Is(err, ErrInputError) {
 			player.Sendf(err.Error())
 		} else {
 			player.Sendf("An error has occurred.")

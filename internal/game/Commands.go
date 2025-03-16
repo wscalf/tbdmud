@@ -9,7 +9,7 @@ import (
 	"github.com/wscalf/tbdmud/internal/game/parameters"
 )
 
-var InputError error = errors.New("invalid input")
+var ErrInputError error = errors.New("invalid input")
 
 type Commands struct {
 	commands map[string]Command
@@ -47,7 +47,7 @@ func (c *Commands) Prepare(p *Player, input string) (Job, error) {
 	}
 
 	if command == nil {
-		return nil, fmt.Errorf("%w: unrecognized command %s: try help", InputError, name)
+		return nil, fmt.Errorf("%w: unrecognized command %s: try help", ErrInputError, name)
 	}
 
 	parameterSpec := command.GetParameters()
@@ -74,7 +74,7 @@ func ExtractParameters(cmd string, text string, parameterSpec []parameters.Param
 			args[p.Name()] = value
 		} else {
 			if p.IsRequired() {
-				return nil, fmt.Errorf("%w: missing required parameter %s. Try help %s", InputError, p.Name(), cmd)
+				return nil, fmt.Errorf("%w: missing required parameter %s. Try help %s", ErrInputError, p.Name(), cmd)
 			}
 		}
 	}

@@ -162,3 +162,13 @@ func (l *Loader) GetLayouts() (map[string]*text.Layout, error) {
 
 	return layouts, nil
 }
+
+func (l *Loader) ReadModuleTextFile(relativePath string) (string, error) {
+	path := filepath.Join(l.dataPath, relativePath)
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return "", err
+	} else {
+		return string(data), nil
+	}
+}

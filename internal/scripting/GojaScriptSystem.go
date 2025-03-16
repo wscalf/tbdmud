@@ -42,7 +42,7 @@ func (s *GojaScriptSystem) Wrap(native interface{}, typeName string) (game.Scrip
 	if err != nil {
 		return nil, err
 	}
-	obj.obj.Set("native", native) //Bypass the setter for native pointer so it doesn't try to unwrap it
+	obj.Obj.Set("native", native) //Bypass the setter for native pointer so it doesn't try to unwrap it
 	return obj, nil
 }
 
@@ -110,7 +110,7 @@ func (s *GojaScriptSystem) importValue(v interface{}) goja.Value {
 	if scriptable, ok := v.(Scriptable); ok {
 		so := scriptable.GetScript()
 		gso := so.(*GojaScriptObject)
-		return gso.obj
+		return gso.Obj
 	} else {
 		return s.vm.ToValue(v)
 	}

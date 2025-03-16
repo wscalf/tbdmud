@@ -22,7 +22,7 @@ func NewRoom(id string, name string, description string, script ScriptObject) *R
 	}
 }
 
-func (r *Room) Link(command string, name string, description string, to *Room) {
+func (r *Room) Link(command string, name string, description string, to *Room, scriptSystem ScriptSystem, typeName string) {
 	link := &Link{
 		Object: Object{
 			ID:          r.ID + "_" + command,
@@ -33,6 +33,9 @@ func (r *Room) Link(command string, name string, description string, to *Room) {
 		command: command,
 		to:      to,
 	}
+
+	script, _ := scriptSystem.Wrap(link, typeName)
+	link.AttachScript(script)
 
 	r.links[command] = link
 }
@@ -51,6 +54,22 @@ func (r *Room) FindPlayer(name string) *Player {
 
 func (r *Room) Describe() text.FormatJob {
 	return r.layout.Prepare(r)
+}
+
+func (r *Room) GetPlayers() []*Player {
+	players := make([]*Player, 0, len(r.players))
+	for _, p := range r.players {
+		players = append(players, p)
+	}
+	return players
+}
+
+func (r *Room) GetLinks() []*Link {
+	links := make([]*Link, 0, len(r.links))
+	for _, l := range r.links {
+		links = append(links, l)
+	}
+	return links
 }
 
 func (r *Room) GetProperties() map[string]interface{} {

@@ -16,7 +16,7 @@ type Loader struct {
 	dataPath string
 }
 
-func (l *Loader) GetRooms() (map[string]*Room, error) {
+func (l *Loader) GetRooms(scriptSystem ScriptSystem, defaultRoomType string, defaultLinkType string) (map[string]*Room, error) {
 	//Load all roomdata from YAML
 	rooms := map[string]*Room{}
 	folder := filepath.Join(l.dataPath, "rooms")
@@ -28,6 +28,13 @@ func (l *Loader) GetRooms() (map[string]*Room, error) {
 	//In a first pass, construct room objects from each
 	for _, roomData := range roomsData {
 		room := NewRoom(roomData.ID, roomData.Name, roomData.Desc, nil)
+		script, err := scriptSystem.Wrap(room, selectName(roomData.TypeName, defaultRoomType))
+		if err != nil {
+			return nil, err
+		}
+
+		room.AttachScript(script)
+
 		rooms[room.ID] = room
 	}
 	//In a second pass, process the linkdata from each roomdata and create links
@@ -36,11 +43,19 @@ func (l *Loader) GetRooms() (map[string]*Room, error) {
 			from := rooms[roomData.ID]
 			to := rooms[linkData.To]
 
-			from.Link(linkData.Command, linkData.Name, linkData.Desc, to)
+			from.Link(linkData.Command, linkData.Name, linkData.Desc, to, scriptSystem, selectName(linkData.TypeName, defaultLinkType))
 		}
 	}
 	//Return
 	return rooms, nil
+}
+
+func selectName(givenName, defaultName string) string {
+	if givenName == "" {
+		return defaultName
+	}
+
+	return givenName
 }
 
 func NewLoader(dataPath string) *Loader {
@@ -114,21 +129,26 @@ func extractRoomsData(file io.Reader) ([]RoomData, error) {
 }
 
 type RoomData struct {
-	ID    string `yaml:"id"`
-	Name  string `yaml:"name"`
-	Desc  string `yaml:"desc"`
-	Links []struct {
-		Name    string `yaml:"name"`
-		Command string `yaml:"cmd"`
-		To      string `yaml:"to"`
-		Desc    string `yaml:"desc"`
+	ID       string `yaml:"id"`
+	Name     string `yaml:"name"`
+	Desc     string `yaml:"desc"`
+	TypeName string `yaml:"type"`
+	Links    []struct {
+		Name     string `yaml:"name"`
+		Command  string `yaml:"cmd"`
+		To       string `yaml:"to"`
+		TypeName string `yaml:"type"`
+		Desc     string `yaml:"desc"`
 	} `yaml:"links"`
 }
 
 type Metadata struct {
-	Banner      string `yaml:"banner"`
-	ChargenRoom string `yaml:"chargen_room"`
-	DefaultRoom string `yaml:"default_room"`
+	Banner            string `yaml:"banner"`
+	ChargenRoom       string `yaml:"chargen_room"`
+	DefaultRoom       string `yaml:"default_room"`
+	DefaultPlayerType string `yaml:"player_type"`
+	DefaultRoomType   string `yaml:"room_type"`
+	DefaultLinkType   string `yaml:"link_type"`
 }
 
 func (l *Loader) GetLayouts() (map[string]*text.Layout, error) {

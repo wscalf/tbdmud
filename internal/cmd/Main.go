@@ -21,7 +21,7 @@ func main() {
 		return
 	}
 
-	world := game.NewWorld(scriptSystem, "Room")
+	world := game.NewWorld()
 	meta, err := loader.GetMeta()
 	if err != nil {
 		slog.Error("Failed to load module metadata. Exiting..", "err", err)
@@ -34,7 +34,7 @@ func main() {
 		return
 	}
 
-	rooms, err := loader.GetRooms()
+	rooms, err := loader.GetRooms(scriptSystem, meta.DefaultRoomType, meta.DefaultLinkType) //Get default type names from metadata
 	if err != nil {
 		slog.Error("Failed to load rooms. Exiting..", "err", err)
 		return
@@ -52,7 +52,7 @@ func main() {
 
 	scriptSystem.RegisterCommands(commands)
 
-	game := game.NewGame(commands, telnetListener, world, login, layouts, scriptSystem, "Player")
+	game := game.NewGame(commands, telnetListener, world, login, layouts, scriptSystem, meta.DefaultPlayerType)
 
 	game.Run()
 }

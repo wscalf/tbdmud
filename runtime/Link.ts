@@ -7,4 +7,8 @@ class Link {
     set Name(value: string) {
         this.native.Name = value;
     }
+
+    Move(player: Player, to: Room) {
+        this.native.Move(player["native"], to["native"]);
+    }
 }

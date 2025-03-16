@@ -16,6 +16,7 @@ declare class Link {
     private native;
     get Name(): string;
     set Name(value: string);
+    Move(player: Player, to: Room): void;
 }
 declare class Player {
     private native;

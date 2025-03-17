@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"log/slog"
+	"os"
+	"strconv"
 
 	"github.com/wscalf/tbdmud/internal/game"
 	"github.com/wscalf/tbdmud/internal/net"
@@ -10,8 +12,13 @@ import (
 )
 
 func main() {
-	defaultPort := 4000     //Make parameter
-	worldPath := "./sample" //Make parameter
+	portValue := os.Getenv("TELNET_PORT")
+	port, err := strconv.Atoi(portValue)
+	if err != nil {
+		slog.Error("Failed to parse TELNET_PORT as integer", "value", portValue, "err", err)
+		return
+	}
+	worldPath := os.Getenv("WORLD")
 
 	loader := game.NewLoader(worldPath)
 
@@ -46,7 +53,7 @@ func main() {
 
 	login := game.NewLogin(meta.Banner, layouts["player"])
 
-	telnetListener := net.NewTelnetListener(defaultPort)
+	telnetListener := net.NewTelnetListener(port)
 	commands := game.NewCommands()
 	commands.RegisterBuiltins(layouts)
 

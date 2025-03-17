@@ -136,10 +136,11 @@ func (r *Room) addPlayer(p *Player) {
 	r.players[p.Name] = p
 
 	p.Send(r.Describe())
+	r.SendToAllExcept(p, "%s has arrived.", p.Name)
 }
 
 func (r *Room) removePlayer(p *Player) {
 	delete(r.players, p.Name)
 
-	p.Sendf("You left: %s", r.Name)
+	r.SendToAll("%s has left.", p.Name)
 }

@@ -222,8 +222,29 @@ func (i Inv) Execute(player *Player, args map[string]string) {
 	player.Send(job)
 }
 
+/*
+Inv
+*/
+var descparams = []parameters.Parameter{parameters.NewFreeText("description")}
+
+type Desc struct{}
+
+func (d Desc) GetDescription() string {
+	return "Changes your character's description."
+}
+
+func (d Desc) GetParameters() []parameters.Parameter {
+	return descparams
+}
+
+func (d Desc) Execute(player *Player, args map[string]string) {
+	desc := args["description"]
+	player.Description = desc
+}
+
 func (c *Commands) RegisterBuiltins(layouts map[string]*text.Layout) {
 	c.Register("think", Think{})
+	c.Register("desc", Desc{})
 	c.Register("help", Help{commands: c})
 	c.Register("say", Say{})
 	c.Register("look", Look{})

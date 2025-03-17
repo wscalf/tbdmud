@@ -34,7 +34,7 @@ func main() {
 		return
 	}
 
-	rooms, err := loader.GetRooms(scriptSystem, meta.DefaultRoomType, meta.DefaultLinkType) //Get default type names from metadata
+	rooms, err := loader.GetRooms(scriptSystem, meta.DefaultRoomType, meta.DefaultLinkType, meta.DefaultObjectType) //Get default type names from metadata
 	if err != nil {
 		slog.Error("Failed to load rooms. Exiting..", "err", err)
 		return
@@ -48,7 +48,7 @@ func main() {
 
 	telnetListener := net.NewTelnetListener(defaultPort)
 	commands := game.NewCommands()
-	commands.RegisterBuiltins()
+	commands.RegisterBuiltins(layouts)
 
 	scriptSystem.RegisterCommands(commands)
 

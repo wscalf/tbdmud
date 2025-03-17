@@ -10,14 +10,30 @@ class Lockable extends Link {
     }
 
     Unlock(player: Player) {
+        let usedKey = this.findMatchingKey(player);
+        if (usedKey == null) {
+            player.Send("You don't have the key.")
+            return
+        }
+
         this.locked = false;
-        player.Send("You unlock the door with a heavy clank.")
-        player.Room.SendToAllExcept(player, "%s unlocks the door with a heavy clank.", player.Name);
+        player.Send("You unlock the door with the %s.", usedKey.Name)
+        player.Room.SendToAllExcept(player, "%s unlocks the door with a the %s.", player.Name, usedKey.Name);
     }
 
     Lock(player: Player) {
         this.locked = true;
         player.Send("You lock the door with a heavy clank.")
         player.Room.SendToAllExcept(player, "%s locks the door with a heavy clank.", player.Name);
+    }
+
+    private findMatchingKey(player: Player): Key | null {
+        for (var item of player.Items) {
+            if (item instanceof Key && item.Matches(this.key)) {
+                return item
+            }
+        }
+
+        return null
     }
 }

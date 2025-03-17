@@ -16,7 +16,7 @@ type Loader struct {
 	dataPath string
 }
 
-func (l *Loader) GetRooms(scriptSystem ScriptSystem, defaultRoomType string, defaultLinkType string) (map[string]*Room, error) {
+func (l *Loader) GetRooms(scriptSystem ScriptSystem, defaultRoomType string, defaultLinkType string, defaultObjectType string) (map[string]*Room, error) {
 	//Load all roomdata from YAML
 	rooms := map[string]*Room{}
 	folder := filepath.Join(l.dataPath, "rooms")
@@ -33,8 +33,27 @@ func (l *Loader) GetRooms(scriptSystem ScriptSystem, defaultRoomType string, def
 			return nil, err
 		}
 
-		room.AttachScript(script)
+		for key, val := range roomData.ScriptVars {
+			script.Set(key, val)
+		}
 
+		for _, itemData := range roomData.Objects {
+			item := NewObject(itemData.Name, itemData.Desc)
+
+			script, err := scriptSystem.Wrap(item, selectName(itemData.TypeName, defaultObjectType))
+			if err != nil {
+				return nil, err
+			}
+
+			for key, val := range itemData.ScriptVars {
+				script.Set(key, val)
+			}
+
+			item.AttachScript(script)
+
+			room.AddItem(item)
+		}
+		room.AttachScript(script)
 		rooms[room.ID] = room
 	}
 	//In a second pass, process the linkdata from each roomdata and create links
@@ -43,7 +62,7 @@ func (l *Loader) GetRooms(scriptSystem ScriptSystem, defaultRoomType string, def
 			from := rooms[roomData.ID]
 			to := rooms[linkData.To]
 
-			from.Link(linkData.Command, linkData.Name, linkData.Desc, to, scriptSystem, selectName(linkData.TypeName, defaultLinkType))
+			from.Link(linkData.Command, linkData.Name, linkData.Desc, to, scriptSystem, selectName(linkData.TypeName, defaultLinkType), linkData.ScriptVars)
 		}
 	}
 	//Return
@@ -129,23 +148,32 @@ func extractRoomsData(file io.Reader) ([]RoomData, error) {
 }
 
 type RoomData struct {
-	ID       string `yaml:"id"`
-	Name     string `yaml:"name"`
-	Desc     string `yaml:"desc"`
-	TypeName string `yaml:"type"`
-	Links    []struct {
-		Name     string `yaml:"name"`
-		Command  string `yaml:"cmd"`
-		To       string `yaml:"to"`
-		TypeName string `yaml:"type"`
-		Desc     string `yaml:"desc"`
+	ID         string         `yaml:"id"`
+	Name       string         `yaml:"name"`
+	Desc       string         `yaml:"desc"`
+	TypeName   string         `yaml:"type"`
+	ScriptVars map[string]any `yaml:"vars"`
+	Links      []struct {
+		Name       string         `yaml:"name"`
+		Command    string         `yaml:"cmd"`
+		To         string         `yaml:"to"`
+		TypeName   string         `yaml:"type"`
+		ScriptVars map[string]any `yaml:"vars"`
+		Desc       string         `yaml:"desc"`
 	} `yaml:"links"`
+	Objects []struct {
+		Name       string         `yaml:"name"`
+		Desc       string         `yaml:"desc"`
+		TypeName   string         `yaml:"type"`
+		ScriptVars map[string]any `yaml:"vars"`
+	} `yaml:"objects"`
 }
 
 type Metadata struct {
 	Banner            string `yaml:"banner"`
 	ChargenRoom       string `yaml:"chargen_room"`
 	DefaultRoom       string `yaml:"default_room"`
+	DefaultObjectType string `yaml:"object_type"`
 	DefaultPlayerType string `yaml:"player_type"`
 	DefaultRoomType   string `yaml:"room_type"`
 	DefaultLinkType   string `yaml:"link_type"`

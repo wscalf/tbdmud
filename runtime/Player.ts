@@ -15,4 +15,12 @@ class Player {
     Send(format: string, ...args: string[]) {
         this.native.Sendf(format, ...args)
     }
+
+    get Items(): MUDObject[] {
+        let items: MUDObject[] = []
+        for (var item of this.native.GetItems()) {
+            items.push(extractJSObj(item))
+        }
+        return items
+    }
 }

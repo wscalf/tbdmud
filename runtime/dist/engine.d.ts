@@ -19,12 +19,20 @@ declare class Link {
     get Command(): string;
     Move(player: Player, to: Room): void;
 }
+declare class MUDObject {
+    private native;
+    get Name(): string;
+    set Name(value: string);
+    get Desc(): string;
+    set Desc(value: string);
+}
 declare class Player {
     private native;
     get Name(): string;
     set Name(value: string);
     get Room(): Room;
     Send(format: string, ...args: string[]): void;
+    get Items(): MUDObject[];
 }
 declare class Room {
     private native;

@@ -11,6 +11,7 @@ type Player struct {
 	Object
 	client  Client
 	room    *Room
+	items   map[string]*Object
 	outbox  chan text.FormatJob
 	layout  *text.Layout
 	onInput func(*Player, string)
@@ -22,6 +23,7 @@ func NewPlayer(id string, name string) *Player {
 			ID:   id,
 			Name: name,
 		},
+		items:  map[string]*Object{},
 		outbox: make(chan text.FormatJob, 10),
 	}
 }
@@ -47,10 +49,15 @@ func (p *Player) Describe() text.FormatJob {
 }
 
 func (p *Player) GetProperties() map[string]interface{} {
-	return map[string]interface{}{
-		"name": p.Name,
-		"desc": p.Description,
+	props := p.Object.GetProperties()
+
+	objects := make([]map[string]interface{}, 0, len(p.items))
+	for _, o := range p.items {
+		objects = append(objects, o.GetProperties())
 	}
+	props["items"] = objects
+
+	return props
 }
 
 func (p *Player) GetRoom() *Room {
@@ -92,6 +99,29 @@ func (p *Player) Run() {
 			}
 		}
 	}
+}
+
+func (p *Player) FindItem(item string) *Object {
+	return p.items[item]
+}
+
+func (p *Player) Give(item *Object) {
+	//TODO: emit some kind of inventory-disturbed script event here
+	p.items[item.Name] = item
+}
+
+func (p *Player) Take(item *Object) {
+	//TODO: emit script event here
+	delete(p.items, item.Name)
+}
+
+func (p *Player) GetItems() []*Object {
+	items := make([]*Object, 0, len(p.items))
+	for _, item := range p.items {
+		items = append(items, item)
+	}
+
+	return items
 }
 
 func (p *Player) Sendf(template string, params ...interface{}) {

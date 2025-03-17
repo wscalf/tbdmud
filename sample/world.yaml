@@ -10,3 +10,4 @@ default_room: start
 player_type: Player
 room_type: Room
 link_type: Link
+object_type: MUDObject

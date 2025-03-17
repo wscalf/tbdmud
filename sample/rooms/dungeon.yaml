@@ -1,0 +1,57 @@
+---
+id: start
+name: A Dimly Lit Tunnel
+desc: >
+  A brickwork tunnel underground. It's cool down here, and the walls are damp. There's a heavy door to the west, and the tunnel continues to the east.
+links:
+  - cmd: w
+    name: west
+    type: Lockable
+    vars:
+      key: old_rusty
+    to: loot
+    desc: A heavy wooden door bound in metal.
+  - cmd: e
+    name: east
+    to: more_tunnel
+    desc: Deeper into the tunnel.
+---
+id: more_tunnel
+name: A Dimly Lit Tunnel
+desc: >
+  A brickwork tunnel underground. It's cool down here, and the walls are damp. It looks like you've found a dead end, but there's an old worn door to the north.
+links:
+  - cmd: n
+    name: north
+    to: store
+    desc: An old wooden door, partially rotten
+  - cmd: w
+    name: west
+    to: start
+    desc: Back up the tunnel.
+---
+id: store
+name: Storage Room
+desc: >
+  An old store room. There's dust everywhere, and any goods you might find are well past their prime.
+objects:
+  - name: Old Rusty Key
+    desc: An old rusty key. It must go to a door nearby.
+    type: Key
+    vars:
+      key: old_rusty
+links:
+  - cmd: s
+    name: south
+    to: more_tunnel
+    desc: Back through the old rotten door.
+---
+id: loot
+name: Treasure Room
+desc: >
+  It's some sort of treasury. The room is lit by what look like torches burning with green flames casting a sickly glow on the piles of gold coins and trinkets before you.
+links:
+  - cmd: e
+    name: east
+    to: start
+    desc: Back the way you came.

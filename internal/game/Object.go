@@ -7,6 +7,20 @@ type Object struct {
 	script      ScriptObject
 }
 
+func NewObject(name, description string) *Object {
+	return &Object{
+		Name:        name,
+		Description: description,
+	}
+}
+
+func (o *Object) GetProperties() map[string]interface{} {
+	return map[string]interface{}{
+		"name": o.Name,
+		"desc": o.Description,
+	}
+}
+
 func (o *Object) GetScript() ScriptObject {
 	return o.script
 }

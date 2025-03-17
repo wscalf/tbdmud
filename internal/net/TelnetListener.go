@@ -16,7 +16,7 @@ type TelnetListener struct {
 func NewTelnetListener(port int) *TelnetListener {
 	listener := &TelnetListener{
 		Server: telnet.Server{
-			Addr:      fmt.Sprintf("localhost:%d", port),
+			Addr:      fmt.Sprintf("0.0.0.0:%d", port),
 			TLSConfig: nil,
 			Logger:    nil,
 		},

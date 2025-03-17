@@ -70,6 +70,7 @@ func (g *Game) handlePlayersJoining() {
 
 			p.Run()
 
+			p.Leave()
 			delete(g.players, p.ID)
 		}()
 	}

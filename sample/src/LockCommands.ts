@@ -5,7 +5,6 @@ class LockCommands {
         if (l == null) {
             player.Send("I don't see that here.")
         } else if (l instanceof Lockable) {
-            player.Send("Trying to unlock");
             l.Unlock(player)
         } else {
             player.Send("You can't unlock that.")

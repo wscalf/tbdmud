@@ -22,9 +22,15 @@ class Lockable extends Link {
     }
 
     Lock(player: Player) {
+        let usedKey = this.findMatchingKey(player);
+        if (usedKey == null) {
+            player.Send("You don't have the key.")
+            return
+        }
+
         this.locked = true;
-        player.Send("You lock the door with a heavy clank.")
-        player.Room.SendToAllExcept(player, "%s locks the door with a heavy clank.", player.Name);
+        player.Send("You lock the door with the %s.", usedKey.Name)
+        player.Room.SendToAllExcept(player, "%s locks the door with a the %s.", player.Name, usedKey.Name);
     }
 
     private findMatchingKey(player: Player): Key | null {

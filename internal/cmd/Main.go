@@ -9,6 +9,7 @@ import (
 	"github.com/wscalf/tbdmud/internal/game"
 	"github.com/wscalf/tbdmud/internal/net"
 	"github.com/wscalf/tbdmud/internal/scripting"
+	"github.com/wscalf/tbdmud/internal/storage"
 )
 
 func main() {
@@ -19,6 +20,11 @@ func main() {
 		return
 	}
 	worldPath := os.Getenv("WORLD")
+	store, err := initializeStorage(worldPath)
+	if err != nil {
+		slog.Error("Error initializing storage provider.", "err", err)
+		return
+	}
 
 	loader := game.NewLoader(worldPath)
 
@@ -51,7 +57,7 @@ func main() {
 	world.InitializeRooms(rooms)
 	world.SetSystemRooms(meta.ChargenRoom, meta.DefaultRoom)
 
-	login := game.NewLogin(meta.Banner, layouts["player"])
+	login := game.NewLogin(meta.Banner, layouts["player"], store)
 
 	telnetListener := net.NewTelnetListener(port)
 	commands := game.NewCommands()
@@ -62,6 +68,17 @@ func main() {
 	game := game.NewGame(commands, telnetListener, world, login, layouts, scriptSystem, meta.DefaultPlayerType)
 
 	game.Run()
+}
+
+func initializeStorage(worldPath string) (game.Storage, error) {
+	store := storage.NewBoltDBStore()
+	err := store.Initialize(worldPath)
+	if err != nil {
+		return nil, err
+	}
+
+	go store.Process()
+	return store, nil
 }
 
 func initializeScripting(loader *game.Loader) (game.ScriptSystem, error) {
@@ -82,7 +99,10 @@ func initializeScripting(loader *game.Loader) (game.ScriptSystem, error) {
 		return nil, fmt.Errorf("error executing module.js: %w", err)
 	}
 
-	system.Initialize()
+	err = system.Initialize()
+	if err != nil {
+		return nil, fmt.Errorf("error initialize script system: %w", err)
+	}
 
 	return system, nil
 }

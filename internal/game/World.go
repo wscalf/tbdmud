@@ -33,6 +33,14 @@ func (w *World) AddRoom(r *Room) {
 	w.rooms[r.ID] = r
 }
 
+func (w *World) FindRoom(id string) *Room {
+	if room, ok := w.rooms[id]; ok {
+		return room
+	} else {
+		return nil
+	}
+}
+
 func (w *World) SetRoomLayout(layout *text.Layout) {
 	for _, r := range w.rooms {
 		r.layout = w.defaultRoomLayout

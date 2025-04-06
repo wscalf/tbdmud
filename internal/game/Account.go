@@ -17,7 +17,7 @@ func NewAccount(login string) *Account {
 	}
 }
 
-func (a *Account) AddCharacter(p *Player) {
+func (a *Account) AddCharacter(p *PlayerSaveData) {
 	entry := characterEntry{
 		id:   p.ID,
 		name: p.Name,
@@ -48,4 +48,48 @@ func (a *Account) CheckPassword(password string) bool {
 type characterEntry struct {
 	id   string
 	name string
+}
+
+type AccountSaveData struct {
+	Login          string
+	PasswordHash   []byte
+	CharactersData []characterEntryData
+}
+
+type characterEntryData struct {
+	ID   string
+	Name string
+}
+
+func (a *Account) GetSaveData() *AccountSaveData {
+	data := &AccountSaveData{
+		Login:          a.Login,
+		PasswordHash:   a.passwordHash,
+		CharactersData: make([]characterEntryData, 0, len(a.characters)),
+	}
+
+	for _, character := range a.characters {
+		data.CharactersData = append(data.CharactersData, characterEntryData{
+			ID:   character.id,
+			Name: character.name,
+		})
+	}
+
+	return data
+}
+
+func AccountFromSaveData(data *AccountSaveData) *Account {
+	account := NewAccount(data.Login)
+	account.passwordHash = data.PasswordHash
+
+	charactersData := data.CharactersData
+	account.characters = make([]characterEntry, 0, len(charactersData))
+	for _, charData := range charactersData {
+		account.characters = append(account.characters, characterEntry{
+			id:   charData.ID,
+			name: charData.Name,
+		})
+	}
+
+	return account
 }

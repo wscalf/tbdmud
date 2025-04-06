@@ -1,6 +1,7 @@
 package game
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -9,39 +10,44 @@ import (
 	"github.com/wscalf/tbdmud/internal/text"
 )
 
+var ErrIncorrectInput error = errors.New("invalid input")
+
 type Login struct {
-	banner string
-	//Temporary placeholder for data that would be kept in the DB
-	accounts            map[string]*Account
-	characters          map[string]*Player
+	banner              string
 	defaultPlayerLayout *text.Layout
+	store               Storage
 }
 
-func NewLogin(banner string, playerLayout *text.Layout) *Login {
+func NewLogin(banner string, playerLayout *text.Layout, store Storage) *Login {
 	return &Login{
 		banner:              banner,
-		accounts:            map[string]*Account{},
-		characters:          map[string]*Player{},
 		defaultPlayerLayout: playerLayout,
+		store:               store,
 	}
 }
 
-func (l *Login) Process(client Client) *Player {
+func (l *Login) Process(client Client) (*PlayerSaveData, error) {
 	client.Send(l.banner)
-	account := l.loginOrRegister(client)
+	account, err := l.loginOrRegister(client)
+	if err != nil {
+		return nil, err
+	}
 	if account == nil {
-		return nil
+		return nil, nil
 	}
 
-	character := l.selectOrCreateCharacter(client, account)
+	character, err := l.selectOrCreateCharacter(client, account)
+	if err != nil {
+		return nil, err
+	}
 	if character == nil {
-		return nil
+		return nil, nil
 	}
 
-	return character
+	return character, nil
 }
 
-func (l *Login) loginOrRegister(client Client) *Account {
+func (l *Login) loginOrRegister(client Client) (*Account, error) {
 	const prompt string = "Use `login <username> <password>` to log in, `register <username> <password>` to register, `help` to repeat this message, or `quit` to disconnect."
 	paramspec := []parameters.Parameter{parameters.NewName("login", true), parameters.NewName("password", true)}
 	client.Send(prompt)
@@ -63,51 +69,66 @@ func (l *Login) loginOrRegister(client Client) *Account {
 				account, err = l.tryRegister(params["login"], params["password"])
 			}
 			if err != nil {
-				client.Send(err.Error())
-				continue
+				if errors.Is(err, ErrIncorrectInput) {
+					client.Send(err.Error())
+					continue
+				} else {
+					return nil, err
+				}
 			}
 
-			return account
+			return account, nil
 		case "help":
 			client.Send(prompt)
 		case "quit":
-			return nil
+			return nil, nil
 		default:
 			client.Send("unrecognized command")
 			client.Send(prompt)
 		}
 	}
 
-	return nil
+	return nil, nil
 }
 
 func (l *Login) tryLogin(login string, password string) (*Account, error) {
-	account, ok := l.accounts[login] //Simulates looking up the account in the DB
-	if !ok {
-		return nil, fmt.Errorf("incorrect login or password")
+	account, err := l.store.FindAccount(login)
+	if err != nil {
+		return nil, fmt.Errorf("error loading account %s: %w", account, err)
+	}
+
+	if account == nil {
+		return nil, fmt.Errorf("%w: incorrect login or password", ErrIncorrectInput)
 	}
 
 	if !account.CheckPassword(password) {
-		return nil, fmt.Errorf("incorrect login or password")
+		return nil, fmt.Errorf("%w: incorrect login or password", ErrIncorrectInput)
 	}
 
 	return account, nil
 }
 
 func (l *Login) tryRegister(login string, password string) (*Account, error) {
-	_, exists := l.accounts[login] //Simulates checking for the account in the DB
-	if exists {
-		return nil, fmt.Errorf("account already exists")
+	existing, err := l.store.FindAccount(login)
+	if err != nil {
+		return nil, fmt.Errorf("error loading account: %w", err)
+	}
+
+	if existing != nil {
+		return nil, fmt.Errorf("%w: account already exists", ErrIncorrectInput)
 	}
 
 	account := NewAccount(login)
 	account.SetPassword(password)
-	l.accounts[login] = account //Simulates adding the account to the DB
+	err = l.store.CreateOrUpdateAccount(account)
+	if err != nil {
+		return nil, fmt.Errorf("error creating account: %w", err)
+	}
 
 	return account, nil
 }
 
-func (l *Login) selectOrCreateCharacter(client Client, account *Account) *Player {
+func (l *Login) selectOrCreateCharacter(client Client, account *Account) (*PlayerSaveData, error) {
 	characters := account.characters
 	client.Send("Select a character:")
 	for i, entry := range characters {
@@ -125,9 +146,11 @@ func (l *Login) selectOrCreateCharacter(client Client, account *Account) *Player
 			}
 
 			entry := account.characters[selection]
-			character := l.characters[entry.id] //Simulates looking up the character in the DB
-			character.SetLayout(l.defaultPlayerLayout)
-			return character
+			character, err := l.store.FindPlayer(entry.id)
+			if err != nil {
+				return nil, fmt.Errorf("error loading character: %w", err)
+			}
+			return character, nil
 		}
 
 		//Should be a new character then
@@ -145,12 +168,21 @@ func (l *Login) selectOrCreateCharacter(client Client, account *Account) *Player
 
 		name := params["name"]
 		id := uuid.NewString()
-		character := NewPlayer(id, name)
-		account.AddCharacter(character) //Changes account which would need to be written back to the DB
-		l.characters[id] = character    //Simulates saving the new character to the DB
-		character.SetLayout(l.defaultPlayerLayout)
-		return character
+		character := &PlayerSaveData{ObjectSaveData: ObjectSaveData{ID: id, Name: name}}
+		account.AddCharacter(character)
+
+		err = l.store.CreateOrUpdatePlayer(character)
+		if err != nil {
+			return nil, fmt.Errorf("error saving character: %w", err)
+		}
+
+		err = l.store.CreateOrUpdateAccount(account)
+		if err != nil {
+			return nil, fmt.Errorf("error adding character to account: %w", err)
+		}
+
+		return character, nil
 	}
 
-	return nil //Client disconnected partway through
+	return nil, nil
 }

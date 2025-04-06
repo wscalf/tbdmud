@@ -10,15 +10,17 @@ import (
 var ErrUnrecognizedProperty error = errors.New("unrecognized property")
 
 type GojaScriptObject struct {
-	Obj    *goja.Object
-	system *GojaScriptSystem
+	Obj        *goja.Object
+	system     *GojaScriptSystem
+	scriptType string
 	//propertyNames map[string]bool
 }
 
-func newGojaScriptObject(obj *goja.Object, system *GojaScriptSystem) *GojaScriptObject {
+func newGojaScriptObject(obj *goja.Object, system *GojaScriptSystem, typeName string) *GojaScriptObject {
 	o := &GojaScriptObject{
-		Obj:    obj,
-		system: system,
+		Obj:        obj,
+		system:     system,
+		scriptType: typeName,
 		//propertyNames: map[string]bool{},
 	}
 
@@ -76,4 +78,31 @@ func (o *GojaScriptObject) Call(name string, args ...interface{}) (interface{}, 
 	}
 
 	return o.system.exportValue(v), nil
+}
+
+func (o *GojaScriptObject) Type() string {
+	return o.scriptType
+}
+
+func (o *GojaScriptObject) GetDescribeProperties() (map[string]any, error) {
+	return map[string]any{}, nil
+}
+
+func (o *GojaScriptObject) GetSaveProperties() (map[string]any, error) {
+	fields, err := o.system.getPersistedFieldsForType(o.scriptType)
+	if err != nil {
+		return nil, err
+	}
+
+	data := map[string]any{}
+	for _, field := range fields {
+		v, err := o.Get(field)
+		if err != nil {
+			return nil, err
+		}
+
+		data[field] = v
+	}
+
+	return data, nil
 }

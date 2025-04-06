@@ -7,6 +7,10 @@ import (
 	"github.com/wscalf/tbdmud/internal/text"
 )
 
+// Might not need these to be global since everything goes through Game anyway
+var _scriptSystem ScriptSystem
+var _world *World
+
 type Game struct {
 	listener          ClientListener
 	commands          *Commands
@@ -20,6 +24,9 @@ type Game struct {
 }
 
 func NewGame(commands *Commands, listener ClientListener, world *World, login *Login, layouts map[string]*text.Layout, scriptSystem ScriptSystem, defaultPlayerType string) *Game {
+	_scriptSystem = scriptSystem
+	_world = world
+
 	return &Game{
 		commands:          commands,
 		listener:          listener,
@@ -51,24 +58,38 @@ func (g *Game) handlePlayersJoining() {
 
 	for client := range clients {
 		go func() {
-			p := g.login.Process(client)
-			if p == nil {
+			data, err := g.login.Process(client)
+			if err != nil {
+				slog.Error("error processing login", "err", err)
+				client.Send("An error occurred.") //Consider looping back to the login process- or even looping the specific step
+				return
+			}
+			if data.ID == "" {
 				client.Disconnect()
 				return
 			}
 
+			p := NewPlayer(data.ID, data.Name)
+			p.Description = data.Desc
+
 			g.players[p.ID] = p
 			p.AttachClient(client)
 			p.SetInputHandler(g.handleCommand)
-			script, _ := g.scriptSystem.Wrap(p, g.defaultPlayerType)
-			p.AttachScript(script)
+			p.SetLayout(g.login.defaultPlayerLayout)
 
 			g.jobQueue.Enqueue(JoinWorldJob{
 				player: p,
+				data:   data,
 				game:   g,
 			})
 
 			p.Run()
+			data, err = p.GetSaveData() //Probably shouldn't keep the data object around for the whole player session - consider some scoping
+			if err != nil {
+				slog.Error("error getting player save data", "err", err)
+			} else {
+				g.login.store.CreateOrUpdatePlayer(data)
+			}
 
 			p.Leave()
 			delete(g.players, p.ID)
@@ -83,11 +104,31 @@ func (g *Game) handlePlayersJoining() {
 
 type JoinWorldJob struct {
 	player *Player
+	data   *PlayerSaveData
 	game   *Game
 }
 
 func (j JoinWorldJob) Run() {
-	j.player.Join(j.game.world.chargen) //For persistence would need to retrieve the character's last room from storage
+	script, err := _scriptSystem.Wrap(j.player, j.game.defaultPlayerType)
+	if err != nil {
+		slog.Error("error wrapping character script", "err", err, "script", j.game.defaultPlayerType)
+		j.player.client.Disconnect()
+		return
+	}
+	for name, value := range j.data.Vars {
+		script.Set(name, value)
+	}
+	j.player.AttachScript(script)
+
+	if j.data.RoomID != "" {
+		if room, ok := j.game.world.rooms[j.data.RoomID]; ok {
+			j.player.Join(room)
+		} else {
+			j.player.Join(j.game.world.defaultRoom)
+		}
+	} else {
+		j.player.Join(j.game.world.chargen)
+	}
 	j.player.SetInputHandler(j.game.handleCommand)
 }
 

@@ -16,8 +16,9 @@ var ErrUnrecognizedType = errors.New("unrecognized type")
 var bootstrapCode string
 
 type GojaScriptSystem struct {
-	vm    *goja.Runtime
-	types map[string]goja.Value
+	vm                     *goja.Runtime
+	types                  map[string]goja.Value
+	getPersistedProperties goja.Callable
 }
 
 func NewGojaScriptSystem() *GojaScriptSystem {
@@ -46,7 +47,7 @@ func (s *GojaScriptSystem) Wrap(native interface{}, typeName string) (game.Scrip
 	return obj, nil
 }
 
-func (s *GojaScriptSystem) Initialize() {
+func (s *GojaScriptSystem) Initialize() error {
 	//Find all the types
 	for _, name := range s.vm.GlobalObject().GetOwnPropertyNames() {
 		candidate := s.vm.Get(name)
@@ -54,6 +55,14 @@ func (s *GojaScriptSystem) Initialize() {
 			s.types[name] = candidate
 		}
 	}
+
+	f, ok := goja.AssertFunction(s.vm.Get("getPersistedProperties"))
+	if !ok {
+		return fmt.Errorf("getPersistedProperties not found in bootstrap code")
+	}
+
+	s.getPersistedProperties = f
+	return nil
 }
 
 func (s *GojaScriptSystem) RegisterCommands(commands *game.Commands) {
@@ -69,6 +78,21 @@ func (s *GojaScriptSystem) RegisterCommands(commands *game.Commands) {
 		cmd := NewGojaScriptCommand(name, description, s.convertParameters(params), s, handler)
 		commands.Register(name, cmd)
 	}
+}
+
+func (s *GojaScriptSystem) getPersistedFieldsForType(typeName string) ([]string, error) {
+	v, err := s.getPersistedProperties(goja.Null(), s.importValue(typeName))
+	if err != nil {
+		return nil, err
+	}
+
+	values := v.Export().([]any)
+	result := make([]string, 0, len(values))
+	for _, value := range values {
+		result = append(result, value.(string))
+	}
+
+	return result, nil
 }
 
 func (s *GojaScriptSystem) convertParameters(paramsObject *goja.Object) []parameters.Parameter {
@@ -103,7 +127,7 @@ func (s *GojaScriptSystem) createObject(typeName string) (*GojaScriptObject, err
 		return nil, fmt.Errorf("unable to instantiate object of type %s: %w", typeName, err)
 	}
 
-	return newGojaScriptObject(obj, s), nil
+	return newGojaScriptObject(obj, s, typeName), nil
 }
 
 func (s *GojaScriptSystem) importValue(v interface{}) goja.Value {

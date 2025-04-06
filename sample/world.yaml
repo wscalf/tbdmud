@@ -7,7 +7,7 @@ banner: |
 
 chargen_room: chargen
 default_room: start
-player_type: Player
+player_type: DemoPlayer
 room_type: Room
 link_type: Link
 object_type: MUDObject

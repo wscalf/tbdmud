@@ -26,6 +26,13 @@ declare class MUDObject {
     get Desc(): string;
     set Desc(value: string);
 }
+declare class Map<T> {
+    private data;
+    has(key: string): boolean;
+    get(key: string): T;
+    set(key: string, value: T): void;
+    remove(key: string): void;
+}
 declare class Player {
     private native;
     get Name(): string;
@@ -34,6 +41,9 @@ declare class Player {
     Send(format: string, ...args: string[]): void;
     get Items(): MUDObject[];
 }
+declare let persistedPropertiesByType: Map<Array<string>>;
+declare function persist(): (proto: any, member: string) => void;
+declare function getPersistedProperties(typeName: string): Array<string>;
 declare class Room {
     private native;
     get Name(): string;

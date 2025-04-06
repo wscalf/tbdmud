@@ -28,6 +28,51 @@ func NewPlayer(id string, name string) *Player {
 	}
 }
 
+type PlayerSaveData struct {
+	RoomID string `json:"room"`
+	ObjectSaveData
+}
+
+func PlayerFromSaveData(data map[string]any) (*Player, error) {
+	//Need to look up an maybe apply the past room
+	p := &Player{
+		Object: ObjectFromSaveData(data),
+		items:  map[string]*Object{},
+		outbox: make(chan text.FormatJob, 10),
+	}
+
+	if script, err := _scriptSystem.Wrap(p, data["type"].(string)); err != nil { //This needs to be on the main thread too, actually
+		return nil, err
+	} else {
+		p.script = script
+		//Apply saved properties ... on the main thread
+	}
+
+	if roomId, ok := data["room"]; ok {
+		_ = _world.FindRoom(roomId.(string))
+		//How to enqueue joining the room?
+	}
+
+	return p, nil
+}
+
+func (p *Player) GetSaveData() (*PlayerSaveData, error) {
+	obj, err := p.Object.GetSaveData()
+	if err != nil {
+		return nil, err
+	}
+
+	data := &PlayerSaveData{
+		ObjectSaveData: obj,
+	}
+
+	if p.room != nil {
+		data.RoomID = p.room.ID
+	}
+
+	return data, nil
+}
+
 func (p *Player) AttachScript(script ScriptObject) {
 	p.script = script
 }

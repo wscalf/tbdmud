@@ -57,7 +57,7 @@ func (r *Room) FindPlayer(name string) *Player {
 	return r.players[name]
 }
 
-func (r *Room) Describe() text.FormatJob {
+func (r *Room) Describe() OutputJob {
 	return r.layout.Prepare(r)
 }
 

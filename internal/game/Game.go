@@ -61,7 +61,7 @@ func (g *Game) handlePlayersJoining() {
 			data, err := g.login.Process(client)
 			if err != nil {
 				slog.Error("error processing login", "err", err)
-				client.Send("An error occurred.") //Consider looping back to the login process- or even looping the specific step
+				client.Send(text.NewPrintfJob("An error occurred.")) //Consider looping back to the login process- or even looping the specific step
 				return
 			}
 			if data.ID == "" {

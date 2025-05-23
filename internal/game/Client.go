@@ -1,7 +1,7 @@
 package game
 
 type Client interface {
-	Send(msg string) error
+	Send(msg OutputJob) error
 	Recv() chan string
 	LastError() error
 	Disconnect()

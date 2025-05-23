@@ -1,7 +1,7 @@
 package text
 
 import (
-	"strings"
+	"io"
 	"text/template"
 )
 
@@ -20,7 +20,7 @@ func NewLayout(name string, body string) (*Layout, error) {
 	}, nil
 }
 
-func (l *Layout) Prepare(obj Formattable) FormatJob {
+func (l *Layout) Prepare(obj Formattable) LayoutJob {
 	properties := obj.GetProperties()
 
 	return LayoutJob{
@@ -34,12 +34,6 @@ type LayoutJob struct {
 	properties map[string]interface{}
 }
 
-func (t LayoutJob) Run() (string, error) {
-	var builder strings.Builder
-	err := t.template.Execute(&builder, t.properties)
-	if err != nil {
-		return "", err
-	}
-
-	return builder.String(), nil
+func (t LayoutJob) Run(w io.Writer) error {
+	return t.template.Execute(w, t.properties)
 }

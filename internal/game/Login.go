@@ -27,7 +27,7 @@ func NewLogin(banner string, playerLayout *text.Layout, store Storage) *Login {
 }
 
 func (l *Login) Process(client Client) (*PlayerSaveData, error) {
-	client.Send(l.banner)
+	sendSynchronous(client, l.banner)
 	account, err := l.loginOrRegister(client)
 	if err != nil {
 		return nil, err
@@ -50,7 +50,7 @@ func (l *Login) Process(client Client) (*PlayerSaveData, error) {
 func (l *Login) loginOrRegister(client Client) (*Account, error) {
 	const prompt string = "Use `login <username> <password>` to log in, `register <username> <password>` to register, `help` to repeat this message, or `quit` to disconnect."
 	paramspec := []parameters.Parameter{parameters.NewName("login", true), parameters.NewName("password", true)}
-	client.Send(prompt)
+	sendSynchronous(client, prompt)
 	for input := range client.Recv() {
 		cmd, argpart := SplitCommandNameFromArgs(input)
 
@@ -58,7 +58,7 @@ func (l *Login) loginOrRegister(client Client) (*Account, error) {
 		case "login", "register":
 			params, err := ExtractParameters(cmd, argpart, paramspec)
 			if err != nil {
-				client.Send(err.Error())
+				sendSynchronous(client, err.Error())
 				continue
 			}
 
@@ -70,7 +70,7 @@ func (l *Login) loginOrRegister(client Client) (*Account, error) {
 			}
 			if err != nil {
 				if errors.Is(err, ErrIncorrectInput) {
-					client.Send(err.Error())
+					sendSynchronous(client, err.Error())
 					continue
 				} else {
 					return nil, err
@@ -79,12 +79,12 @@ func (l *Login) loginOrRegister(client Client) (*Account, error) {
 
 			return account, nil
 		case "help":
-			client.Send(prompt)
+			sendSynchronous(client, prompt)
 		case "quit":
 			return nil, nil
 		default:
-			client.Send("unrecognized command")
-			client.Send(prompt)
+			sendSynchronous(client, "unrecognized command")
+			sendSynchronous(client, prompt)
 		}
 	}
 
@@ -130,18 +130,18 @@ func (l *Login) tryRegister(login string, password string) (*Account, error) {
 
 func (l *Login) selectOrCreateCharacter(client Client, account *Account) (*PlayerSaveData, error) {
 	characters := account.characters
-	client.Send("Select a character:")
+	sendSynchronous(client, "Select a character:")
 	for i, entry := range characters {
-		client.Send(fmt.Sprintf("%d: %s", i+1, entry.name))
+		sendSynchronous(client, "%d: %s", i+1, entry.name)
 	}
-	client.Send("Or use create <name> to create a new character. (Remember to quote full names.)")
+	sendSynchronous(client, "Or use create <name> to create a new character. (Remember to quote full names.)")
 
 	for input := range client.Recv() {
 		i, err := strconv.Atoi(input)
 		if err == nil {
 			selection := i - 1
 			if selection < 0 || selection >= len(characters) {
-				client.Send("Please select one of the above options.")
+				sendSynchronous(client, "Please select one of the above options.")
 				continue
 			}
 
@@ -157,12 +157,12 @@ func (l *Login) selectOrCreateCharacter(client Client, account *Account) (*Playe
 		paramspec := []parameters.Parameter{parameters.NewName("name", true)}
 		cmd, argpart := SplitCommandNameFromArgs(input)
 		if cmd != "create" {
-			client.Send("Please select one of the above options.")
+			sendSynchronous(client, "Please select one of the above options.")
 			continue
 		}
 		params, err := ExtractParameters(cmd, argpart, paramspec)
 		if err != nil {
-			client.Send(err.Error())
+			sendSynchronous(client, err.Error())
 			continue
 		}
 
@@ -185,4 +185,9 @@ func (l *Login) selectOrCreateCharacter(client Client, account *Account) (*Playe
 	}
 
 	return nil, nil
+}
+
+func sendSynchronous(client Client, template string, params ...interface{}) error {
+	job := text.NewPrintfJob(template+"\n", params...)
+	return client.Send(job)
 }

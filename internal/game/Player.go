@@ -1,7 +1,6 @@
 package game
 
 import (
-	"fmt"
 	"log/slog"
 
 	"github.com/wscalf/tbdmud/internal/text"
@@ -12,7 +11,7 @@ type Player struct {
 	client  Client
 	room    *Room
 	items   map[string]*Object
-	outbox  chan text.FormatJob
+	outbox  chan OutputJob
 	layout  *text.Layout
 	onInput func(*Player, string)
 }
@@ -24,7 +23,7 @@ func NewPlayer(id string, name string) *Player {
 			Name: name,
 		},
 		items:  map[string]*Object{},
-		outbox: make(chan text.FormatJob, 10),
+		outbox: make(chan OutputJob, 10),
 	}
 }
 
@@ -38,7 +37,7 @@ func PlayerFromSaveData(data map[string]any) (*Player, error) {
 	p := &Player{
 		Object: ObjectFromSaveData(data),
 		items:  map[string]*Object{},
-		outbox: make(chan text.FormatJob, 10),
+		outbox: make(chan OutputJob, 10),
 	}
 
 	if script, err := _scriptSystem.Wrap(p, data["type"].(string)); err != nil { //This needs to be on the main thread too, actually
@@ -89,7 +88,7 @@ func (p *Player) SetInputHandler(onInput func(*Player, string)) {
 	p.onInput = onInput
 }
 
-func (p *Player) Describe() text.FormatJob {
+func (p *Player) Describe() OutputJob {
 	return p.layout.Prepare(p)
 }
 
@@ -136,11 +135,9 @@ func (p *Player) Run() {
 				active = false
 			}
 		case output := <-p.outbox:
-			msg, err := output.Run()
+			err := p.client.Send(output)
 			if err != nil {
 				slog.Error("error formatting output", "err", err, "job", output)
-			} else {
-				p.client.Send(msg)
 			}
 		}
 	}
@@ -170,18 +167,9 @@ func (p *Player) GetItems() []*Object {
 }
 
 func (p *Player) Sendf(template string, params ...interface{}) {
-	p.outbox <- sprintfJob{template: template, params: params}
+	p.outbox <- text.NewPrintfJob(template, params...)
 }
 
-func (p *Player) Send(job text.FormatJob) {
+func (p *Player) Send(job OutputJob) {
 	p.outbox <- job
-}
-
-type sprintfJob struct {
-	template string
-	params   []interface{}
-}
-
-func (f sprintfJob) Run() (string, error) {
-	return fmt.Sprintf(f.template, f.params...), nil
 }

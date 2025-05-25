@@ -86,123 +86,122 @@ func (t *TelnetClient) Disconnect() {
 	t.disconnect = true
 }
 
-const (
-	ansiBold             string = "1"
-	ansiFaint            string = "2"
-	ansiItalic           string = "3"
-	ansiUnderline        string = "4"
-	ansiStrikeout        string = "9"
-	ansiClearBoldFaint   string = "22"
-	ansiClearItalic      string = "23"
-	ansiClearUnderline   string = "24"
-	ansiClearStrikeout   string = "29"
-	ansiForecolorBlack   string = "30"
-	ansiForecolorRed     string = "31"
-	ansiForecolorGreen   string = "32"
-	ansiForecolorYellow  string = "33"
-	ansiForecolorBlue    string = "34"
-	ansiForecolorMagenta string = "35"
-	ansiForecolorCyan    string = "36"
-	ansiForecolorWhite   string = "37"
-	ansiClearforecolor   string = "39"
-	ansiBackcolorBlack   string = "40"
-	ansiBackcolorRed     string = "41"
-	ansiBackcolorGreen   string = "42"
-	ansiBackcolorYellow  string = "43"
-	ansiBackcolorBlue    string = "44"
-	ansiBackcolorMagenta string = "45"
-	ansiBackcolorCyan    string = "46"
-	ansiBackcolorWhite   string = "47"
-	ansiClearBackcolor   string = "49"
-)
-
 const sgrPattern string = "\033[%sm"
+
+var ansiBold string = fmt.Sprintf(sgrPattern, "1")
+var ansiFaint string = fmt.Sprintf(sgrPattern, "2")
+var ansiItalic string = fmt.Sprintf(sgrPattern, "3")
+var ansiUnderline string = fmt.Sprintf(sgrPattern, "4")
+var ansiStrikeout string = fmt.Sprintf(sgrPattern, "9")
+var ansiClearBoldFaint string = fmt.Sprintf(sgrPattern, "22")
+var ansiClearItalic string = fmt.Sprintf(sgrPattern, "23")
+var ansiClearUnderline string = fmt.Sprintf(sgrPattern, "24")
+var ansiClearStrikeout string = fmt.Sprintf(sgrPattern, "29")
+var ansiForecolorBlack string = fmt.Sprintf(sgrPattern, "30")
+var ansiForecolorRed string = fmt.Sprintf(sgrPattern, "31")
+var ansiForecolorGreen string = fmt.Sprintf(sgrPattern, "32")
+var ansiForecolorYellow string = fmt.Sprintf(sgrPattern, "33")
+var ansiForecolorBlue string = fmt.Sprintf(sgrPattern, "34")
+var ansiForecolorMagenta string = fmt.Sprintf(sgrPattern, "35")
+var ansiForecolorCyan string = fmt.Sprintf(sgrPattern, "36")
+var ansiForecolorWhite string = fmt.Sprintf(sgrPattern, "37")
+var ansiClearforecolor string = fmt.Sprintf(sgrPattern, "39")
+var ansiBackcolorBlack string = fmt.Sprintf(sgrPattern, "40")
+var ansiBackcolorRed string = fmt.Sprintf(sgrPattern, "41")
+var ansiBackcolorGreen string = fmt.Sprintf(sgrPattern, "42")
+var ansiBackcolorYellow string = fmt.Sprintf(sgrPattern, "43")
+var ansiBackcolorBlue string = fmt.Sprintf(sgrPattern, "44")
+var ansiBackcolorMagenta string = fmt.Sprintf(sgrPattern, "45")
+var ansiBackcolorCyan string = fmt.Sprintf(sgrPattern, "46")
+var ansiBackcolorWhite string = fmt.Sprintf(sgrPattern, "47")
+var ansiClearBackcolor string = fmt.Sprintf(sgrPattern, "49")
 
 func handleANSIFormattingReplacement(directive text.FormattingDirective) string {
 	switch directive.FormattingKind {
 	case text.FormattingKindForecolor:
 		if directive.End {
-			return fmt.Sprintf(sgrPattern, ansiClearforecolor)
+			return ansiClearforecolor
 		}
 
-		var code string
 		switch directive.Param {
 		case "black":
-			code = ansiForecolorBlack
+			return ansiForecolorBlack
 		case "red":
-			code = ansiForecolorRed
+			return ansiForecolorRed
 		case "green":
-			code = ansiForecolorGreen
+			return ansiForecolorGreen
 		case "yellow":
-			code = ansiForecolorYellow
+			return ansiForecolorYellow
 		case "blue":
-			code = ansiForecolorBlue
+			return ansiForecolorBlue
 		case "magenta":
-			code = ansiForecolorMagenta
+			return ansiForecolorMagenta
 		case "cyan":
-			code = ansiForecolorCyan
+			return ansiForecolorCyan
 		case "white":
-			code = ansiForecolorWhite
+			return ansiForecolorWhite
 		default:
-			code = ansiForecolorWhite
+			return ansiForecolorWhite
 		}
-
-		return fmt.Sprintf(sgrPattern, code)
 	case text.FormattingKindBackcolor:
 		if directive.End {
-			return fmt.Sprintf(sgrPattern, ansiClearBackcolor)
+			return ansiClearBackcolor
 		}
 
-		var code string
 		switch directive.Param {
 		case "black":
-			code = ansiBackcolorBlack
+			return ansiBackcolorBlack
 		case "red":
-			code = ansiBackcolorRed
+			return ansiBackcolorRed
 		case "green":
-			code = ansiBackcolorGreen
+			return ansiBackcolorGreen
 		case "yellow":
-			code = ansiBackcolorYellow
+			return ansiBackcolorYellow
 		case "blue":
-			code = ansiBackcolorBlue
+			return ansiBackcolorBlue
 		case "magenta":
-			code = ansiBackcolorMagenta
+			return ansiBackcolorMagenta
 		case "cyan":
-			code = ansiBackcolorCyan
+			return ansiBackcolorCyan
 		case "white":
-			code = ansiBackcolorWhite
+			return ansiBackcolorWhite
 		default:
-			code = ansiBackcolorBlack
+			return ansiBackcolorBlack
 		}
-
-		return fmt.Sprintf(sgrPattern, code)
 
 	case text.FormattingKindBold:
 		if directive.End {
-			return fmt.Sprintf(sgrPattern, ansiClearBoldFaint)
+			return ansiClearBoldFaint
 		} else {
-			return fmt.Sprintf(sgrPattern, ansiBold)
+			return ansiBold
 		}
 
 	case text.FormattingKindFaint:
 		if directive.End {
-			return fmt.Sprintf(sgrPattern, ansiClearBoldFaint)
+			return ansiClearBoldFaint
 		} else {
-			return fmt.Sprintf(sgrPattern, ansiFaint)
+			return ansiFaint
+		}
+
+	case text.FormattingKindItalic:
+		if directive.End {
+			return ansiClearItalic
+		} else {
+			return ansiItalic
 		}
 
 	case text.FormattingKindUnderline:
 		if directive.End {
-			return fmt.Sprintf(sgrPattern, ansiClearUnderline)
+			return ansiClearUnderline
 		} else {
-			return fmt.Sprintf(sgrPattern, ansiUnderline)
+			return ansiUnderline
 		}
 
 	case text.FormattingKindStrikeout:
 		if directive.End {
-			return fmt.Sprintf(sgrPattern, ansiClearStrikeout)
+			return ansiClearStrikeout
 		} else {
-			return fmt.Sprintf(sgrPattern, ansiStrikeout)
+			return ansiStrikeout
 		}
 	}
 

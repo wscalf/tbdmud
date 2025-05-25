@@ -86,21 +86,24 @@ func (m *MarkupFilter) Write(p []byte) (n int, err error) {
 	if m.directiveInProgress {
 		close := strings.IndexByte(str, ']')
 		if close == -1 { //Most likely the directive is spanning write calls - probably need to add to an internal buffer
+			if m.partial.Len()+len(str) > 10 { //Runaway tag
+				m.directiveInProgress = false
+				m.partial.Reset()
+				return 0, nil
+			}
+
 			m.partial.WriteString(str)
 			return 0, nil
 		}
 
 		m.partial.WriteString(str[:close])
 		start = close + 1
+		m.directiveInProgress = false
 
 		if m.directiveCallback != nil {
 			raw := m.partial.String()
 			m.partial.Reset()
-			directive := parseFormattingDirective(raw)
-			replacement := m.directiveCallback(directive)
-
-			written, err := m.inner.Write([]byte(replacement))
-			n += written
+			n, err = m.callDirectiveCallback(raw, n)
 			if err != nil {
 				return n, err
 			}
@@ -139,11 +142,7 @@ func (m *MarkupFilter) Write(p []byte) (n int, err error) {
 		close += open
 		if m.directiveCallback != nil {
 			raw := str[open+1 : close]
-			directive := parseFormattingDirective(raw)
-			replacement := m.directiveCallback(directive)
-
-			written, err := m.inner.Write([]byte(replacement))
-			n += written
+			n, err = m.callDirectiveCallback(raw, n)
 			if err != nil {
 				return n, err
 			}
@@ -152,4 +151,17 @@ func (m *MarkupFilter) Write(p []byte) (n int, err error) {
 	}
 
 	return n, nil
+}
+
+func (m *MarkupFilter) callDirectiveCallback(raw string, n int) (int, error) {
+	directive := parseFormattingDirective(raw)
+	replacement := m.directiveCallback(directive)
+
+	if len(replacement) > 0 {
+		written, err := m.inner.Write([]byte(replacement))
+		n += written
+		return n, err
+	} else {
+		return n, nil
+	}
 }

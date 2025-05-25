@@ -33,11 +33,21 @@ func TestMarkupFilterHandlesReplacements(t *testing.T) {
 	sb := &strings.Builder{}
 	filter := NewMarkupFilter(sb, handleReplacement)
 
-	input := "[fc=red]F[i]o[/i]o[/fc]"
+	input := "[fc=magenta]F[i]o[/i]o[/fc]"
 	filter.Write([]byte(input))
 	output := sb.String()
 
-	assert.Equal(t, "(red)F(i)o(!i)o(!color)", output)
+	assert.Equal(t, "(magenta)F(i)o(!i)o(!color)", output)
+}
+
+func BenchmarkMarkupFilterWrite(b *testing.B) {
+	sb := &strings.Builder{}
+	filter := NewMarkupFilter(sb, handleReplacement)
+
+	for i := 0; i < b.N; i++ {
+		filter.Write([]byte("[fc=red]F[i]o[/i]o[/fc]"))
+		sb.Reset()
+	}
 }
 
 func TestMarkupFilterHandlesDirectivesSplitOverWriteCalls(t *testing.T) {

@@ -11,6 +11,11 @@ declare type CommandRef = {
 };
 declare const commands: CommandRef[];
 declare function Command(name: string, desc: string, params: Parameter[]): (target: any, key: string, descriptor: PropertyDescriptor) => void;
+declare class _GenAI {
+    private native;
+    Generate(systemPrompt: string, prompt: string): string;
+}
+declare const GenAI: _GenAI;
 declare function extractJSObj(native: any): any;
 declare class Link {
     private native;

@@ -31,4 +31,10 @@ class DemoCommands {
             });
         }
     }
+    @Command("test-ai", "Prompts the integrated generative AI", [{name: "prompt", type: "freetext", required: true}])
+    static test_ai(player: DemoPlayer, prompt: string) {
+        let result: string = GenAI.Generate("You are AnyVAC, an advanced machine intelligence that assists humans by responding to prompts, inspired by the MI from Isaac Asimov's The Last Question.", prompt)
+
+        player.Send(result)
+    }
 }

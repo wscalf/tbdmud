@@ -62,8 +62,8 @@ func (s *GojaScriptSystem) wrap(native interface{}, typeName string) (*goja.Obje
 	return obj, nil
 }
 
-func (s *GojaScriptSystem) AddGlobal(name, scriptType string, native interface{}) error {
-	scriptObj, err := s.wrap(native, scriptType)
+func (s *GojaScriptSystem) AddGlobal(name, typeName string, native interface{}) error {
+	scriptObj, err := s.wrap(native, typeName)
 	if err != nil {
 		return err
 	}

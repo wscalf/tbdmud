@@ -1,10 +1,16 @@
+declare class ChatMessage {
+    Actor: string
+    Body: string
+}
+
 class _GenAI {
     private native: any;
 
     Generate(systemPrompt: string, prompt: string): string {
-        let result = this.native.Generate(systemPrompt, prompt);
-
-        return result
+        return this.native.Generate(systemPrompt, prompt);
+    }
+    Chat(systemPrompt: string, history: ChatMessage[], actor: string, pose: string): ChatMessage[] {
+        return this.native.Chat(systemPrompt, history, actor, pose);
     }
 }
 

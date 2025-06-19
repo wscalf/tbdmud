@@ -1,3 +1,5 @@
+var messages: ChatMessage[] = [];
+
 class DemoCommands {
     @Command("increment", "Increments a value on the player", [])
     static increment(player: DemoPlayer) {
@@ -31,10 +33,19 @@ class DemoCommands {
             });
         }
     }
-    @Command("test-ai", "Prompts the integrated generative AI", [{name: "prompt", type: "freetext", required: true}])
-    static test_ai(player: DemoPlayer, prompt: string) {
-        let result: string = GenAI.Generate("You are AnyVAC, an advanced machine intelligence that assists humans by responding to prompts, inspired by the MI from Isaac Asimov's The Last Question.", prompt)
 
-        player.Send(result)
+    @Command("address", "Addresses <NPC> with <pose> and uses generative AI to produce a response", [{name: "NPC", type: "name", required: true},{name: "pose", type: "freetext", required: true}])
+    static address(player: DemoPlayer, name: string, pose: string) {
+        let room = player.Room;
+        let item = room.FindItem(name);
+        if (!item) {
+            player.Send("I don't see that here.");
+        }
+
+        if (item instanceof NPC) {
+            item.Address(room, pose);
+        } else {
+            player.Send("That isn't an interactable NPC.")
+        }
     }
 }

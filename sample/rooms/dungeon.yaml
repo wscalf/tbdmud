@@ -40,6 +40,9 @@ objects:
     type: Key
     vars:
       key: old_rusty
+  - name: Ricky
+    desc: An older man dressed in rough, worn clothes with a wide variety of utilities, but mismatched and old. This fellow isn't a sanctioned explorer and may just be some kind of treasure hunter. He seems friendly enough on the surface but doesn't seem trusting. He's currently also searching the storeroom.
+    type: NPC
 links:
   - cmd: s
     name: south

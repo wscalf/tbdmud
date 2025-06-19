@@ -11,9 +11,14 @@ declare type CommandRef = {
 };
 declare const commands: CommandRef[];
 declare function Command(name: string, desc: string, params: Parameter[]): (target: any, key: string, descriptor: PropertyDescriptor) => void;
+declare class ChatMessage {
+    Actor: string;
+    Body: string;
+}
 declare class _GenAI {
     private native;
     Generate(systemPrompt: string, prompt: string): string;
+    Chat(systemPrompt: string, history: ChatMessage[], actor: string, pose: string): ChatMessage[];
 }
 declare const GenAI: _GenAI;
 declare function extractJSObj(native: any): any;
@@ -43,6 +48,8 @@ declare class Player {
     private native;
     get Name(): string;
     set Name(value: string);
+    get Desc(): string;
+    set Desc(value: string);
     get Room(): Room;
     Send(format: string, ...args: string[]): void;
     get Items(): MUDObject[];
@@ -54,8 +61,10 @@ declare class Room {
     private native;
     get Name(): string;
     set Name(value: string);
+    get Desc(): string;
     get Players(): Player[];
     get Links(): Link[];
+    FindItem(name: string): MUDObject;
     SendToAll(pattern: string, ...args: string[]): void;
     SendToAllExcept(player: Player, pattern: string, ...args: string[]): void;
     FindPathTo(to: Room, limit: number): Link[] | null;

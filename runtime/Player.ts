@@ -8,6 +8,13 @@ class Player {
         this.native.Name = value;
     }
 
+    get Desc(): string {
+        return this.native.Description
+    }
+    set Desc(value: string) {
+        this.native.Description = value;
+    }
+
     get Room(): Room {
         return extractJSObj(this.native.GetRoom());
     }

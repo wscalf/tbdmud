@@ -9,6 +9,10 @@ class Room {
         this.native.Name = value;
     }
 
+    get Desc(): string {
+        return this.native.Description;
+    }
+
     get Players(): Player[] {
         let players: Player[] = [];
         
@@ -27,6 +31,11 @@ class Room {
         }
 
         return links
+    }
+
+    FindItem(name: string): MUDObject {
+        let item = this.native.FindItem(name);
+        return extractJSObj(item);
     }
 
     SendToAll(pattern: string, ...args: string[]) {

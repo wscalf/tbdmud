@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tbdmud
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tbdmud
+  template:
+    metadata:
+      labels:
+        app: tbdmud
+    spec:
+      containers:
+      - name: tbdmud
+        image: wscalf/tbdmud:v0.1
+        ports:
+        - containerPort: 4000
+          hostPort: 4000
+          name: public
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /opt/world
+          name: world
+      volumes:
+      - name: world
+        hostPath:
+          path: /opt/tbdmud
+          type: Directory

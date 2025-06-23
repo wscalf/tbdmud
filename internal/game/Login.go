@@ -188,6 +188,6 @@ func (l *Login) selectOrCreateCharacter(client Client, account *Account) (*Playe
 }
 
 func sendSynchronous(client Client, template string, params ...interface{}) error {
-	job := text.NewPrintfJob(template+"\n", params...)
+	job := text.NewPrintfJob(template, params...)
 	return client.Send(job)
 }

@@ -36,4 +36,18 @@ class Room {
     SendToAllExcept(player: Player, pattern: string, ...args: string[]) {
         this.native.SendToAllExcept(player["native"], pattern, ...args);
     }
+
+    FindPathTo(to: Room, limit: number): Link[] | null {
+        let [path, found]: [any[], boolean] = this.native.FindPathTo(to.native, limit);
+        if (!found) {
+            return null;
+        }
+
+        let result: Link[] = []
+        path.forEach(l => {
+            result.push(extractJSObj(l))
+        });
+
+        return result;
+    }
 }

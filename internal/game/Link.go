@@ -8,6 +8,7 @@ type Link struct {
 	Object
 	Command string
 	to      *Room
+	from    *Room
 }
 
 func (l *Link) GetProperties() map[string]interface{} {
@@ -24,6 +25,10 @@ func (l *Link) GetDescription() string {
 }
 func (l *Link) GetParameters() []parameters.Parameter {
 	return []parameters.Parameter{} //Links are always parameterless
+}
+
+func (l *Link) Peek() *Room {
+	return l.to
 }
 
 func (l *Link) Move(player *Player, to *Room) {

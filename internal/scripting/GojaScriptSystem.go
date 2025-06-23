@@ -29,7 +29,13 @@ func NewGojaScriptSystem() *GojaScriptSystem {
 }
 
 func (s *GojaScriptSystem) RunBootstrapCode() error {
-	return s.Run(bootstrapCode)
+	err := s.Run(bootstrapCode)
+	if err != nil {
+		return err
+	}
+
+	s.populateKnownTypes()
+	return nil
 }
 
 func (s *GojaScriptSystem) Run(src string) error {
@@ -39,22 +45,48 @@ func (s *GojaScriptSystem) Run(src string) error {
 }
 
 func (s *GojaScriptSystem) Wrap(native interface{}, typeName string) (game.ScriptObject, error) {
+	obj, err := s.wrap(native, typeName)
+	if err != nil {
+		return nil, err
+	}
+
+	return newGojaScriptObject(obj, s, typeName), nil
+}
+
+func (s *GojaScriptSystem) wrap(native interface{}, typeName string) (*goja.Object, error) {
 	obj, err := s.createObject(typeName)
 	if err != nil {
 		return nil, err
 	}
-	obj.Obj.Set("native", native) //Bypass the setter for native pointer so it doesn't try to unwrap it
+	obj.Set("native", native) //Bypass the setter for native pointer so it doesn't try to unwrap it
 	return obj, nil
 }
 
-func (s *GojaScriptSystem) Initialize() error {
-	//Find all the types
+func (s *GojaScriptSystem) AddGlobal(name, scriptType string, native interface{}) error {
+	scriptObj, err := s.wrap(native, scriptType)
+	if err != nil {
+		return err
+	}
+
+	return s.vm.Set(name, scriptObj)
+}
+
+func (s *GojaScriptSystem) populateKnownTypes() {
 	for _, name := range s.vm.GlobalObject().GetOwnPropertyNames() {
+		if _, found := s.types[name]; found { //Skip already known types
+			continue
+		}
+
 		candidate := s.vm.Get(name)
 		if _, ok := goja.AssertConstructor(candidate); ok {
 			s.types[name] = candidate
 		}
 	}
+}
+
+func (s *GojaScriptSystem) Initialize() error {
+	//Find all the types
+	s.populateKnownTypes()
 
 	f, ok := goja.AssertFunction(s.vm.Get("getPersistedProperties"))
 	if !ok {
@@ -116,7 +148,7 @@ func (s *GojaScriptSystem) convertParameters(paramsObject *goja.Object) []parame
 	return params
 }
 
-func (s *GojaScriptSystem) createObject(typeName string) (*GojaScriptObject, error) {
+func (s *GojaScriptSystem) createObject(typeName string) (*goja.Object, error) {
 	constructor, ok := s.types[typeName]
 	if !ok {
 		return nil, fmt.Errorf("unable to instantiate object of type %s: %w", typeName, ErrUnrecognizedType)
@@ -127,7 +159,7 @@ func (s *GojaScriptSystem) createObject(typeName string) (*GojaScriptObject, err
 		return nil, fmt.Errorf("unable to instantiate object of type %s: %w", typeName, err)
 	}
 
-	return newGojaScriptObject(obj, s, typeName), nil
+	return obj, nil
 }
 
 func (s *GojaScriptSystem) importValue(v interface{}) goja.Value {

@@ -1,6 +1,11 @@
 package game
 
-import "github.com/wscalf/tbdmud/internal/text"
+import (
+	"container/list"
+	"slices"
+
+	"github.com/wscalf/tbdmud/internal/text"
+)
 
 type Room struct {
 	Object
@@ -34,6 +39,7 @@ func (r *Room) Link(command string, name string, description string, to *Room, s
 		},
 		Command: command,
 		to:      to,
+		from:    r,
 	}
 
 	script, _ := scriptSystem.Wrap(link, typeName)
@@ -75,6 +81,59 @@ func (r *Room) GetLinks() []*Link {
 		links = append(links, l)
 	}
 	return links
+}
+
+func (r *Room) FindPathTo(other *Room, limit int) ([]*Link, bool) {
+	q := list.New()
+	visited := map[string]bool{}
+	predecessor := map[string]*Link{}
+	distance := map[string]int{} //Can maybe simplify out
+
+	q.PushBack(r)
+
+	for q.Len() > 0 {
+		element := q.Front()
+		q.Remove(element)
+		next := element.Value.(*Room)
+
+		if next == other {
+			//Example: r == other, should return empty set as there's no path to traverse
+			//Example: r is a neighbor of other, should return 1 link: the link to traverse
+			//Example: r and other share a neighbor, result should be two links: first to the neighbor, then to other
+			result := make([]*Link, 0, limit)
+			room := next
+			for link := predecessor[room.ID]; link != nil; link = predecessor[room.ID] { //Walk backward through predecessors to reconstruct the path
+				result = append(result, link)
+				room = link.from
+			}
+			slices.Reverse(result)
+			return result, true
+		}
+
+		d := 0
+		linkTo := predecessor[next.ID]
+		if linkTo != nil {
+			previous := linkTo.from
+			d = distance[previous.ID] + 1
+		}
+		distance[next.ID] = d
+
+		visited[next.ID] = true
+
+		if d >= limit { //Exploring further would exceed the limit - don't add this node's neighbors to the frontier
+			continue
+		}
+		for _, link := range next.GetLinks() {
+			if visited[link.to.ID] {
+				continue
+			}
+
+			predecessor[link.to.ID] = link
+			q.PushBack(link.to)
+		}
+	}
+
+	return nil, false //No path was found
 }
 
 func (r *Room) GetProperties() map[string]interface{} {

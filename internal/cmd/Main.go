@@ -27,14 +27,14 @@ func main() {
 	}
 
 	loader := game.NewLoader(worldPath)
+	world := game.NewWorld()
 
-	scriptSystem, err := initializeScripting(loader)
+	scriptSystem, err := initializeScripting(loader, world)
 	if err != nil {
 		slog.Error("Failed to initialize scripting subsystem. Exiting..", "err", err)
 		return
 	}
 
-	world := game.NewWorld()
 	meta, err := loader.GetMeta()
 	if err != nil {
 		slog.Error("Failed to load module metadata. Exiting..", "err", err)
@@ -81,7 +81,7 @@ func initializeStorage(worldPath string) (game.Storage, error) {
 	return store, nil
 }
 
-func initializeScripting(loader *game.Loader) (game.ScriptSystem, error) {
+func initializeScripting(loader *game.Loader, world *game.World) (game.ScriptSystem, error) {
 	system := scripting.NewGojaScriptSystem()
 
 	err := system.RunBootstrapCode()
@@ -92,6 +92,11 @@ func initializeScripting(loader *game.Loader) (game.ScriptSystem, error) {
 	moduleCode, err := loader.ReadModuleTextFile("module.js")
 	if err != nil {
 		return nil, fmt.Errorf("error reading module.js: %w", err)
+	}
+
+	err = system.AddGlobal("World", "_World", world)
+	if err != nil {
+		return nil, fmt.Errorf("error binding World global: %w", err)
 	}
 
 	err = system.Run(moduleCode)

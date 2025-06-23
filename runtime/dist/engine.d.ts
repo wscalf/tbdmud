@@ -17,6 +17,7 @@ declare class Link {
     get Name(): string;
     set Name(value: string);
     get Command(): string;
+    Peek(): Room;
     Move(player: Player, to: Room): void;
 }
 declare class MUDObject {
@@ -52,4 +53,10 @@ declare class Room {
     get Links(): Link[];
     SendToAll(pattern: string, ...args: string[]): void;
     SendToAllExcept(player: Player, pattern: string, ...args: string[]): void;
+    FindPathTo(to: Room, limit: number): Link[] | null;
 }
+declare class _World {
+    private native;
+    FindRoom(id: string): Room | null;
+}
+declare const World: _World;

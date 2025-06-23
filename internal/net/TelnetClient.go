@@ -19,21 +19,30 @@ const (
 
 type TelnetClient struct {
 	reader     telnet.Reader
-	writer     *text.MarkupFilter
+	writer     *EnsureMessageEndsInLineBreakFilter
 	input      chan string
 	disconnect bool
 	lastError  error
 }
 
 func newTelnetClient(reader telnet.Reader, writer telnet.Writer) *TelnetClient {
+	markupFilter := text.NewMarkupFilter(writer, handleANSIFormattingReplacement)
+	ensureLineBreakFilter := NewEnsureMessageEndsInLineBreakFilter(markupFilter)
+
 	return &TelnetClient{
 		reader: reader,
-		writer: text.NewMarkupFilter(writer, handleANSIFormattingReplacement),
+		writer: ensureLineBreakFilter,
 	}
 }
 
 func (t *TelnetClient) Send(msg game.OutputJob) error {
-	return msg.Run(t.writer)
+	err := msg.Run(t.writer)
+	if err != nil {
+		return err
+	}
+
+	_, err = t.writer.WriteFinal()
+	return err
 }
 
 func (t *TelnetClient) Recv() chan string {

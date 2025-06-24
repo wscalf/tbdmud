@@ -32,6 +32,7 @@ declare class Link {
 }
 declare class MUDObject {
     private native;
+    get ID(): string;
     get Name(): string;
     set Name(value: string);
     get Desc(): string;
@@ -43,6 +44,7 @@ declare class Map<T> {
     get(key: string): T;
     set(key: string, value: T): void;
     remove(key: string): void;
+    forEach(callbackFn: (key: string, value: T) => void): void;
 }
 declare class Player {
     private native;
@@ -54,11 +56,19 @@ declare class Player {
     Send(format: string, ...args: string[]): void;
     get Items(): MUDObject[];
 }
+declare class _Players {
+    private native;
+    FindById(id: string): Player | null;
+    FindByName(name: string): Player | null;
+    All(): Player[];
+}
+declare const Players: _Players;
 declare let persistedPropertiesByType: Map<Array<string>>;
 declare function persist(): (proto: any, member: string) => void;
 declare function getPersistedProperties(typeName: string): Array<string>;
 declare class Room {
     private native;
+    get ID(): string;
     get Name(): string;
     set Name(value: string);
     get Desc(): string;

@@ -31,7 +31,9 @@ func main() {
 	loader := game.NewLoader(worldPath)
 	world := game.NewWorld()
 
-	scriptSystem, err := initializeScripting(loader, world, ai)
+	players := game.NewPlayers()
+
+	scriptSystem, err := initializeScripting(loader, world, players, ai)
 	if err != nil {
 		slog.Error("Failed to initialize scripting subsystem. Exiting..", "err", err)
 		return
@@ -67,7 +69,7 @@ func main() {
 
 	scriptSystem.RegisterCommands(commands)
 
-	game := game.NewGame(commands, telnetListener, world, login, layouts, scriptSystem, meta.DefaultPlayerType)
+	game := game.NewGame(commands, telnetListener, players, world, login, layouts, scriptSystem, meta.DefaultPlayerType)
 
 	game.Run()
 }
@@ -100,7 +102,7 @@ func initializeStorage(worldPath string) (game.Storage, error) {
 	return store, nil
 }
 
-func initializeScripting(loader *game.Loader, world *game.World, ai genai.GenAI) (game.ScriptSystem, error) {
+func initializeScripting(loader *game.Loader, world *game.World, players *game.Players, ai genai.GenAI) (game.ScriptSystem, error) {
 	system := scripting.NewGojaScriptSystem()
 
 	err := system.RunBootstrapCode()
@@ -118,6 +120,16 @@ func initializeScripting(loader *game.Loader, world *game.World, ai genai.GenAI)
 		return nil, fmt.Errorf("error binding World global: %w", err)
 	}
 
+	err = system.AddGlobal("Players", "_Players", players)
+	if err != nil {
+		return nil, fmt.Errorf("error binding Players global: %w", err)
+	}
+
+	err = system.AddGlobal("GenAI", "_GenAI", ai)
+	if err != nil {
+		return nil, fmt.Errorf("error binding GenAI global: %w", err)
+	}
+
 	err = system.Run(moduleCode)
 	if err != nil {
 		return nil, fmt.Errorf("error executing module.js: %w", err)
@@ -127,8 +139,6 @@ func initializeScripting(loader *game.Loader, world *game.World, ai genai.GenAI)
 	if err != nil {
 		return nil, fmt.Errorf("error initialize script system: %w", err)
 	}
-
-	system.AddGlobal("GenAI", "_GenAI", ai)
 
 	return system, nil
 }

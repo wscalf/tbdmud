@@ -52,9 +52,13 @@ links:
 id: loot
 name: Treasure Room
 desc: >
-  It's some sort of treasury. The room is lit by what look like torches burning with green flames casting a sickly glow on the piles of gold coins and trinkets before you.
+  It's some sort of treasury. The room is lit by what look like torches burning with green flames casting a sickly glow on the piles of gold coins and trinkets before you. There is also a portal shimmering in the corner.
 links:
   - cmd: e
     name: east
     to: start
     desc: Back the way you came.
+  - cmd: p
+    name: portal
+    to: foyer
+    desc: A shimmering portal in the corner

@@ -1,0 +1,38 @@
+---
+id: foyer
+name: Grand Foyer
+desc: >
+  The entryway to the mansion with a central grand staircase white treads and a red runner, all faded now, and the runner rotting and crumbling. There's a fountain in the middle of the room that hasn't run in a long time, and is dry with traces of algae. A round plate glass window above the doorway lets the light in from outside.
+links:
+  - cmd: u
+    name: upstairs
+    to: upper-foyer
+    desc: Up the stairs to the upper foyer
+  - cmd: s
+    name: storeroom
+    to: mansion-store
+    desc: Through a door to the storeroom under the stairs
+---
+id: mansion-store
+name: Storage Room
+desc: >
+  A dusty old storeroom under the stairs. It's full of spoiled food, rotten fabrics, and other forgotten things, and has no windows.
+objects:
+  - name: Ricky
+    desc: An older man dressed in rough, worn clothes with a wide variety of utilities, but mismatched and old. This fellow isn't a sanctioned explorer and may just be some kind of treasure hunter. He seems friendly enough on the surface but doesn't seem trusting. He's currently also searching the storeroom.
+    type: NPC
+links:
+  - cmd: o
+    name: out
+    to: foyer
+    desc: Back out to the foyer
+---
+id: upper-foyer
+name: Grand Foyer - Upper Level
+desc: >
+  The upper level of the foyer, at the top of the grand staircase, is floored with old, faded carpet that used to be red, and is on the same level as the large, round plate glass window that lets the light in.
+links:
+  - cmd: d
+    name: downstairs
+    to: foyer
+    desc: Down the stairs to the lower foyer

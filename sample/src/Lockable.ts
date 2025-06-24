@@ -19,6 +19,7 @@ class Lockable extends Link {
         this.locked = false;
         player.Send("You unlock the door with the %s.", usedKey.Name)
         player.Room.SendToAllExcept(player, "%s unlocks the door with a the %s.", player.Name, usedKey.Name);
+        Sound.EmitLoud(player.Room, 5, "A lock opens with a heavy, reverberating clank.");
     }
 
     Lock(player: Player) {

@@ -1,6 +1,10 @@
 class Room {
     private native: any;
 
+    get ID(): string {
+        return this.native.ID;
+    }
+
     get Name(): string {
         return this.native.Name
     }

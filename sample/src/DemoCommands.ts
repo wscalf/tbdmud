@@ -34,6 +34,30 @@ class DemoCommands {
         }
     }
 
+    @Command("find", "Finds the shortest path to <player> by name", [{name:"player", type:"name", required:true}])
+    static find(player: DemoPlayer, name: string) {
+        let other: Player | null = Players.FindByName(name);
+        if (!other) {
+            player.Send("No one by that name is online.");
+            return;
+        }
+
+        let dest: Room = other.Room;
+        let path = player.Room.FindPathTo(dest, 5);
+        if (path == null) {
+            player.Send("No path found to room %s within %s moves.", dest.Name, "5");
+        } else if (path.length == 0) {
+            player.Send("The path is zero moves - you're already there!");
+        } else {
+            path.forEach(link => {
+                let cmd: string = link.Command;
+                let destination: Room = link.Peek();
+
+                player.Send("Go %s to %s", cmd, destination.Name);
+            });
+        }
+    }
+
     @Command("address", "Addresses <NPC> with <pose> and uses generative AI to produce a response", [{name: "NPC", type: "name", required: true},{name: "pose", type: "freetext", required: true}])
     static address(player: DemoPlayer, name: string, pose: string) {
         let room = player.Room;
@@ -47,5 +71,11 @@ class DemoCommands {
         } else {
             player.Send("That isn't an interactable NPC.")
         }
+    }
+
+    @Command("shout", "Shouts a pose to nearby rooms. Uses generative AI to remix the pose with room data", [{name: "pose", type: "freetext", required: true}])
+    static shout(player: DemoPlayer, pose: string) {
+        let room = player.Room;
+        Sound.EmitLoud(room, 5, pose);
     }
 }

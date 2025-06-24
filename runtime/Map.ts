@@ -15,4 +15,12 @@ class Map<T> {
     public remove(key: string) {
         delete this.data[key];
     }
+
+    public forEach(callbackFn: (key: string, value: T) => void) {
+        Object.keys(this.data).forEach(key => {
+            let value = this.data[key];
+
+            callbackFn(key, value);
+        })
+    }
 }

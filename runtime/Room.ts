@@ -1,12 +1,20 @@
 class Room {
     private native: any;
 
+    get ID(): string {
+        return this.native.ID;
+    }
+
     get Name(): string {
         return this.native.Name
     }
 
     set Name(value: string) {
         this.native.Name = value;
+    }
+
+    get Desc(): string {
+        return this.native.Description;
     }
 
     get Players(): Player[] {
@@ -27,6 +35,11 @@ class Room {
         }
 
         return links
+    }
+
+    FindItem(name: string): MUDObject {
+        let item = this.native.FindItem(name);
+        return extractJSObj(item);
     }
 
     SendToAll(pattern: string, ...args: string[]) {

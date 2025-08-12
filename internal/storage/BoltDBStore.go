@@ -64,7 +64,7 @@ func (b *BoltDBStore) CreateOrUpdateAccount(account *game.Account) error {
 }
 
 func (b *BoltDBStore) FindAccount(name string) (*game.Account, error) {
-	saveData := &game.AccountSaveData{}
+	var saveData *game.AccountSaveData
 	err := b.db.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(AccountBucket))
 		if bucket == nil {
@@ -73,6 +73,7 @@ func (b *BoltDBStore) FindAccount(name string) (*game.Account, error) {
 
 		data := bucket.Get([]byte(name))
 		if data != nil {
+			saveData = &game.AccountSaveData{}
 			return json.NewDecoder(bytes.NewBuffer(data)).Decode(&saveData)
 		} else {
 			return nil

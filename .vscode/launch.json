@@ -12,7 +12,9 @@
         "program": "${workspaceFolder}/bin/tbdmud",
         "env": {
             "TELNET_PORT": "4000",
-            "WORLD": "./sample"
+            "WORLD": "./sample",
+            "GENAI_MODEL": "gurubot/pivot-roleplay-v0.2",
+            "GENAI_ADDRESS": "http://localhost:11434"
         }
     }
     ]

@@ -7,12 +7,14 @@ import (
 	"strconv"
 
 	"github.com/wscalf/tbdmud/internal/game"
+	"github.com/wscalf/tbdmud/internal/genai"
 	"github.com/wscalf/tbdmud/internal/net"
 	"github.com/wscalf/tbdmud/internal/scripting"
 	"github.com/wscalf/tbdmud/internal/storage"
 )
 
 func main() {
+	ai := initializeGenAI()
 	portValue := os.Getenv("TELNET_PORT")
 	port, err := strconv.Atoi(portValue)
 	if err != nil {
@@ -29,7 +31,9 @@ func main() {
 	loader := game.NewLoader(worldPath)
 	world := game.NewWorld()
 
-	scriptSystem, err := initializeScripting(loader, world)
+	players := game.NewPlayers()
+
+	scriptSystem, err := initializeScripting(loader, world, players, ai)
 	if err != nil {
 		slog.Error("Failed to initialize scripting subsystem. Exiting..", "err", err)
 		return
@@ -65,9 +69,26 @@ func main() {
 
 	scriptSystem.RegisterCommands(commands)
 
-	game := game.NewGame(commands, telnetListener, world, login, layouts, scriptSystem, meta.DefaultPlayerType)
+	game := game.NewGame(commands, telnetListener, players, world, login, layouts, scriptSystem, meta.DefaultPlayerType)
 
 	game.Run()
+}
+
+func initializeGenAI() genai.GenAI {
+	model := os.Getenv("GENAI_MODEL")
+	if model == "" {
+		return genai.NewNullGenAI()
+	}
+
+	address := os.Getenv("GENAI_ADDRESS")
+
+	generator, err := genai.NewGenAI(address, model)
+	if err != nil {
+		slog.Error("error initializing generative AI", "err", err, "address", address, "model", model)
+		return genai.NewNullGenAI()
+	}
+
+	return generator
 }
 
 func initializeStorage(worldPath string) (game.Storage, error) {
@@ -81,7 +102,7 @@ func initializeStorage(worldPath string) (game.Storage, error) {
 	return store, nil
 }
 
-func initializeScripting(loader *game.Loader, world *game.World) (game.ScriptSystem, error) {
+func initializeScripting(loader *game.Loader, world *game.World, players *game.Players, ai genai.GenAI) (game.ScriptSystem, error) {
 	system := scripting.NewGojaScriptSystem()
 
 	err := system.RunBootstrapCode()
@@ -97,6 +118,16 @@ func initializeScripting(loader *game.Loader, world *game.World) (game.ScriptSys
 	err = system.AddGlobal("World", "_World", world)
 	if err != nil {
 		return nil, fmt.Errorf("error binding World global: %w", err)
+	}
+
+	err = system.AddGlobal("Players", "_Players", players)
+	if err != nil {
+		return nil, fmt.Errorf("error binding Players global: %w", err)
+	}
+
+	err = system.AddGlobal("GenAI", "_GenAI", ai)
+	if err != nil {
+		return nil, fmt.Errorf("error binding GenAI global: %w", err)
 	}
 
 	err = system.Run(moduleCode)

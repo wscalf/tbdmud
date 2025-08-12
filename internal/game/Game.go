@@ -14,7 +14,7 @@ var _world *World
 type Game struct {
 	listener          ClientListener
 	commands          *Commands
-	players           map[string]*Player
+	players           *Players
 	jobQueue          *JobQueue
 	world             *World
 	login             *Login
@@ -23,14 +23,14 @@ type Game struct {
 	defaultPlayerType string
 }
 
-func NewGame(commands *Commands, listener ClientListener, world *World, login *Login, layouts map[string]*text.Layout, scriptSystem ScriptSystem, defaultPlayerType string) *Game {
+func NewGame(commands *Commands, listener ClientListener, players *Players, world *World, login *Login, layouts map[string]*text.Layout, scriptSystem ScriptSystem, defaultPlayerType string) *Game {
 	_scriptSystem = scriptSystem
 	_world = world
 
 	return &Game{
 		commands:          commands,
 		listener:          listener,
-		players:           make(map[string]*Player),
+		players:           players,
 		jobQueue:          NewJobQueue(100),
 		world:             world,
 		login:             login,
@@ -72,7 +72,7 @@ func (g *Game) handlePlayersJoining() {
 			p := NewPlayer(data.ID, data.Name)
 			p.Description = data.Desc
 
-			g.players[p.ID] = p
+			g.players.Add(p)
 			p.AttachClient(client)
 			p.SetInputHandler(g.handleCommand)
 			p.SetLayout(g.login.defaultPlayerLayout)
@@ -92,7 +92,7 @@ func (g *Game) handlePlayersJoining() {
 			}
 
 			p.Leave()
-			delete(g.players, p.ID)
+			g.players.Remove(p)
 		}()
 	}
 

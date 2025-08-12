@@ -42,6 +42,13 @@ declare class Player {
     Send(format: string, ...args: string[]): void;
     get Items(): MUDObject[];
 }
+declare class _Players {
+    private native;
+    FindById(id: string): Player | null;
+    FindByName(name: string): Player | null;
+    All(): Player[];
+}
+declare const Players: _Players;
 declare let persistedPropertiesByType: Map<Array<string>>;
 declare function persist(): (proto: any, member: string) => void;
 declare function getPersistedProperties(typeName: string): Array<string>;

@@ -29,7 +29,9 @@ func main() {
 	loader := game.NewLoader(worldPath)
 	world := game.NewWorld()
 
-	scriptSystem, err := initializeScripting(loader, world)
+	players := game.NewPlayers()
+
+	scriptSystem, err := initializeScripting(loader, world, players)
 	if err != nil {
 		slog.Error("Failed to initialize scripting subsystem. Exiting..", "err", err)
 		return
@@ -65,7 +67,7 @@ func main() {
 
 	scriptSystem.RegisterCommands(commands)
 
-	game := game.NewGame(commands, telnetListener, world, login, layouts, scriptSystem, meta.DefaultPlayerType)
+	game := game.NewGame(commands, telnetListener, players, world, login, layouts, scriptSystem, meta.DefaultPlayerType)
 
 	game.Run()
 }
@@ -81,7 +83,7 @@ func initializeStorage(worldPath string) (game.Storage, error) {
 	return store, nil
 }
 
-func initializeScripting(loader *game.Loader, world *game.World) (game.ScriptSystem, error) {
+func initializeScripting(loader *game.Loader, world *game.World, players *game.Players) (game.ScriptSystem, error) {
 	system := scripting.NewGojaScriptSystem()
 
 	err := system.RunBootstrapCode()
@@ -97,6 +99,11 @@ func initializeScripting(loader *game.Loader, world *game.World) (game.ScriptSys
 	err = system.AddGlobal("World", "_World", world)
 	if err != nil {
 		return nil, fmt.Errorf("error binding World global: %w", err)
+	}
+
+	err = system.AddGlobal("Players", "_Players", players)
+	if err != nil {
+		return nil, fmt.Errorf("error binding Players global: %w", err)
 	}
 
 	err = system.Run(moduleCode)

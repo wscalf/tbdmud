@@ -83,7 +83,7 @@ func main() {
 	listeners.AddListener(web.Listener())
 
 	commands := game.NewCommands()
-	commands.RegisterBuiltins(layouts)
+	commands.RegisterBuiltins(layouts, players)
 
 	scriptSystem.RegisterCommands(commands)
 

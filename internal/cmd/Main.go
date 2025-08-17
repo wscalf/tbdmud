@@ -63,7 +63,7 @@ func main() {
 
 	telnetListener := net.NewTelnetListener(port)
 	commands := game.NewCommands()
-	commands.RegisterBuiltins(layouts)
+	commands.RegisterBuiltins(layouts, players)
 
 	scriptSystem.RegisterCommands(commands)
 

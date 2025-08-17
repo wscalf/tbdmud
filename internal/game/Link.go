@@ -39,6 +39,7 @@ func (l *Link) Move(player *Player, to *Room) {
 	player.Join(l.to)
 }
 
-func (l *Link) Execute(player *Player, args map[string]string) {
+func (l *Link) Execute(player *Player, args map[string]string, state map[string]any, requeueHandler func()) bool {
 	l.script.Call("Move", player, l.to)
+	return true
 }

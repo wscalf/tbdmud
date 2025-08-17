@@ -77,10 +77,11 @@ func (g *Game) handlePlayersJoining() {
 			p.SetInputHandler(g.handleCommand)
 			p.SetLayout(g.login.defaultPlayerLayout)
 
-			g.jobQueue.Enqueue(JoinWorldJob{
-				player: p,
-				data:   data,
-				game:   g,
+			g.jobQueue.Enqueue(&JoinWorldJob{
+				BaseJob: NewBaseJob(),
+				player:  p,
+				data:    data,
+				game:    g,
 			})
 
 			p.Run()
@@ -103,12 +104,13 @@ func (g *Game) handlePlayersJoining() {
 }
 
 type JoinWorldJob struct {
+	BaseJob
 	player *Player
 	data   *PlayerSaveData
 	game   *Game
 }
 
-func (j JoinWorldJob) Run() {
+func (j *JoinWorldJob) Run() {
 	script, err := _scriptSystem.Wrap(j.player, j.game.defaultPlayerType)
 	if err != nil {
 		slog.Error("error wrapping character script", "err", err, "script", j.game.defaultPlayerType)
@@ -130,6 +132,7 @@ func (j JoinWorldJob) Run() {
 		j.player.Join(j.game.world.chargen)
 	}
 	j.player.SetInputHandler(j.game.handleCommand)
+	j.done = true
 }
 
 func (g *Game) handleCommand(player *Player, cmd string) {

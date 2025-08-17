@@ -39,7 +39,7 @@ func (c *GojaScriptCommand) GetParameters() []parameters.Parameter {
 	return c.parameters
 }
 
-func (c *GojaScriptCommand) Execute(player *game.Player, args map[string]string) {
+func (c *GojaScriptCommand) Execute(player *game.Player, args map[string]string, state map[string]any, requeueHandler func()) bool {
 	importedArgs := make([]goja.Value, 0, len(c.parameters)+1) //Need room for all declared parameters + player
 	importedArgs = append(importedArgs, c.system.importValue(player))
 	for _, parameter := range c.parameters {
@@ -54,4 +54,6 @@ func (c *GojaScriptCommand) Execute(player *game.Player, args map[string]string)
 	if err != nil {
 		slog.Error("error processing soft-coded command", "err", err, "cmd", c.name, "args", args)
 	}
+
+	return true
 }

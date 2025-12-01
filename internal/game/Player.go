@@ -32,6 +32,16 @@ type PlayerSaveData struct {
 	ObjectSaveData
 }
 
+func (s *PlayerSaveData) GetProperties() map[string]interface{} {
+	return map[string]interface{}{
+		"name": s.Name,
+		"desc": s.Desc,
+		"room": s.RoomID,
+		"id":   s.ID,
+		"vars": s.Vars,
+	}
+}
+
 func PlayerFromSaveData(data map[string]any) (*Player, error) {
 	//Need to look up an maybe apply the past room
 	p := &Player{

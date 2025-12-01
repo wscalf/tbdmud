@@ -3,12 +3,14 @@ package game
 type Players struct {
 	idToPlayer map[string]*Player
 	nameToId   map[string]string
+	store      Storage
 }
 
-func NewPlayers() *Players {
+func NewPlayers(store Storage) *Players {
 	return &Players{
 		idToPlayer: map[string]*Player{},
 		nameToId:   map[string]string{},
+		store:      store,
 	}
 }
 
@@ -44,4 +46,13 @@ func (p *Players) FindByName(name string) *Player {
 	}
 
 	return p.idToPlayer[id]
+}
+
+func (p *Players) FindByNameIncludingOffline(name string) (*PlayerSaveData, error) {
+	online := p.FindByName(name)
+	if online != nil {
+		return online.GetSaveData()
+	}
+
+	return p.store.FindPlayerByName(name)
 }

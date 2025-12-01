@@ -1,7 +1,7 @@
 package game
 
 import (
-	"time"
+	"log/slog"
 
 	"github.com/wscalf/tbdmud/internal/game/parameters"
 	"github.com/wscalf/tbdmud/internal/text"
@@ -269,18 +269,30 @@ func (f Finger) GetParameters() []parameters.Parameter {
 
 func (f Finger) Execute(player *Player, args map[string]string, state map[string]any, requeueHandler func()) bool {
 	name := args["name"]
-	_, found := state["found"]
+	found, ok := state["found"].(bool)
 
-	if !found {
+	if !ok {
 		go func() {
-			time.Sleep(10 * time.Second)
-			state["other"] = f.players.FindByName(name)
+			saveData, err := f.players.FindByNameIncludingOffline(name)
+			if err != nil {
+				slog.Error("error finding player by name", "err", err, "name", name)
+				state["found"] = false
+				requeueHandler()
+				return
+			}
+
+			state["other"] = saveData
 			state["found"] = true
 			requeueHandler()
 		}()
 		return false
 	} else {
-		other := state["other"].(*Player)
+		if !found {
+			player.Sendf("Player %s not found.", name)
+			return true
+		}
+
+		other := state["other"].(*PlayerSaveData)
 		job := f.format.Prepare(other)
 		player.Send(job)
 		return true

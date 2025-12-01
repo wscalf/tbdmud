@@ -20,11 +20,13 @@ const (
 type BoltDBStore struct {
 	db         *bolt.DB
 	writeQueue chan writeJob
+	nameToId   map[string][]byte
 }
 
 func NewBoltDBStore() *BoltDBStore {
 	return &BoltDBStore{
 		writeQueue: make(chan writeJob, 10),
+		nameToId:   map[string][]byte{},
 	}
 }
 
@@ -37,7 +39,7 @@ func (b *BoltDBStore) Initialize(path string) error {
 
 	b.db = db
 
-	return db.Update(func(tx *bolt.Tx) error {
+	err = db.Update(func(tx *bolt.Tx) error {
 		_, err = tx.CreateBucketIfNotExists([]byte(PlayerBucket))
 		if err != nil {
 			return err
@@ -45,6 +47,28 @@ func (b *BoltDBStore) Initialize(path string) error {
 
 		_, err = tx.CreateBucketIfNotExists([]byte(AccountBucket))
 		return err
+	})
+	if err != nil {
+		return err
+	}
+
+	return db.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(PlayerBucket))
+		if bucket == nil {
+			return fmt.Errorf("bucket %q not found", PlayerBucket)
+		}
+
+		saveData := &game.PlayerSaveData{}
+		return bucket.ForEach(func(id, data []byte) error {
+			err := json.NewDecoder(bytes.NewBuffer(data)).Decode(&saveData)
+			if err != nil {
+				slog.Error("error decoding player save data", "err", err, "id", string(id))
+				return err
+			}
+
+			b.nameToId[saveData.Name] = id
+			return nil
+		})
 	})
 }
 
@@ -96,6 +120,7 @@ func (b *BoltDBStore) CreateOrUpdatePlayer(data *game.PlayerSaveData) error {
 		return fmt.Errorf("player save data cannot be nil")
 	}
 
+	b.nameToId[data.Name] = []byte(data.ID)
 	b.writeQueue <- writeJob{id: []byte(data.ID), bucketRef: []byte(PlayerBucket), data: data, store: b}
 	return nil
 }
@@ -118,6 +143,15 @@ func (b *BoltDBStore) FindPlayer(id string) (*game.PlayerSaveData, error) {
 	})
 
 	return saveData, err
+}
+
+func (b *BoltDBStore) FindPlayerByName(name string) (*game.PlayerSaveData, error) {
+	id, ok := b.nameToId[name]
+	if !ok {
+		return nil, nil
+	}
+
+	return b.FindPlayer(string(id))
 }
 
 type writeJob struct {

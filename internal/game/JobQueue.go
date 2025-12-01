@@ -1,13 +1,15 @@
 package game
 
+import "sync"
+
 type JobQueue struct {
-	pending map[Job]interface{}
+	pending sync.Map
 	jobs    chan Job
 }
 
 func NewJobQueue(maxDepth int) *JobQueue {
 	return &JobQueue{
-		pending: make(map[Job]interface{}),
+		pending: sync.Map{},
 		jobs:    make(chan Job, maxDepth),
 	}
 }
@@ -20,7 +22,10 @@ func (j *JobQueue) Run() {
 
 		job.Run()
 		if !job.IsDone() {
-			j.pending[job] = struct{}{}
+			j.pending.Store(job, struct{}{})
+			job.SetRequeueHandler(func() {
+				j.Requeue(job)
+			})
 		}
 	}
 }
@@ -30,6 +35,6 @@ func (j *JobQueue) Enqueue(job Job) {
 }
 
 func (j *JobQueue) Requeue(job Job) {
+	j.pending.Delete(job)
 	j.Enqueue(job)
-	delete(j.pending, job)
 }

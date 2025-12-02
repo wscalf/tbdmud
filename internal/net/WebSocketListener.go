@@ -14,7 +14,7 @@ type WebSocketListener struct {
 	clients chan game.Client
 }
 
-func NewWebSocketListener(port int) *WebSocketListener {
+func NewWebSocketListener() *WebSocketListener {
 	return &WebSocketListener{
 		clients: make(chan game.Client, 5),
 	}
@@ -38,4 +38,5 @@ func (l *WebSocketListener) ServeWS(w http.ResponseWriter, r *http.Request) {
 
 	client := newWebSocketClient(ws)
 	l.clients <- client
+	client.Run()
 }

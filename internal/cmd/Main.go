@@ -13,12 +13,20 @@ import (
 )
 
 func main() {
-	portValue := os.Getenv("TELNET_PORT")
-	port, err := strconv.Atoi(portValue)
+	telnetPortValue := os.Getenv("TELNET_PORT")
+	telnetPort, err := strconv.Atoi(telnetPortValue)
 	if err != nil {
-		slog.Error("Failed to parse TELNET_PORT as integer", "value", portValue, "err", err)
+		slog.Error("Failed to parse TELNET_PORT as integer", "value", telnetPortValue, "err", err)
 		return
 	}
+
+	httpPortValue := os.Getenv("HTTP_PORT")
+	httpPort, err := strconv.Atoi(httpPortValue)
+	if err != nil {
+		slog.Error("Failed to parse HTTP_PORT as integer", "value", httpPortValue, "err", err)
+		return
+	}
+
 	worldPath := os.Getenv("WORLD")
 	store, err := initializeStorage(worldPath)
 	if err != nil {
@@ -61,14 +69,20 @@ func main() {
 
 	login := game.NewLogin(meta.Banner, layouts["player"], store)
 
-	telnetListener := net.NewTelnetListener(port)
+	listeners := net.NewAggregateClientListener()
+	telnetListener := net.NewTelnetListener(telnetPort)
+	listeners.AddListener(telnetListener)
+	web := net.NewWeb()
+	listeners.AddListener(web.Listener())
+
 	commands := game.NewCommands()
 	commands.RegisterBuiltins(layouts)
 
 	scriptSystem.RegisterCommands(commands)
 
-	game := game.NewGame(commands, telnetListener, players, world, login, layouts, scriptSystem, meta.DefaultPlayerType)
+	game := game.NewGame(commands, listeners, players, world, login, layouts, scriptSystem, meta.DefaultPlayerType)
 
+	web.ServeHttp(httpPort)
 	game.Run()
 }
 

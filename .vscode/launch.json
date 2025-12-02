@@ -12,6 +12,7 @@
         "program": "${workspaceFolder}/bin/tbdmud",
         "env": {
             "TELNET_PORT": "4000",
+            "HTTP_PORT": "8080",
             "WORLD": "./sample"
         }
     }

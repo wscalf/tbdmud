@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<head>
+    <style>
+        html, body {
+        height: 100%;
+        margin: 0;
+        }
+
+        .app {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        }
+
+        /* OUTPUT WINDOW (fills remaining space) */
+        .output {
+        flex: 1 1 auto;        /* take all leftover vertical space */
+        min-height: 0;         /* IMPORTANT: let it shrink when textarea grows */
+        overflow-y: auto;      /* scrollable log area */
+        padding: 0.5rem;
+        background: #111;
+        color: #ddd;
+        white-space: pre-wrap;
+        font-family: monospace;
+        }
+
+        /* INPUT AREA (content-height only) */
+        .input-wrapper {
+        display: flex;
+        flex: 0 0 auto;        /* size to its contents (the textarea) */
+        flex-direction: row;
+        padding: 0.5rem;
+        border-top: 1px solid #444;
+        }
+
+        /* AUTO-GROWING INPUT */
+        .input-wrapper textarea {
+        width: 100%;
+        box-sizing: border-box;
+        font-family: monospace;
+        font-size: 1rem;
+
+        resize: none;          /* user doesn’t drag size; we control it */
+        overflow: hidden;      /* no inner scrollbar, height grows instead */
+
+        min-height: 1.8em;     /* looks like a single-line input initially */
+        line-height: 1.2;
+        padding: 0.25rem 0.4rem;
+        }
+    </style>
+    <script>
+      window.onload = function() {
+        var conn;
+        var output = document.getElementById('output');
+        var input = document.getElementById('input');
+        var form = document.getElementById('form');
+
+        function autoResize() {
+          input.style.height = 'auto'; // reset so shrink works
+          input.style.height = input.scrollHeight + 'px';
+        }
+        input.addEventListener('input', autoResize);
+
+        function autoSubmitOnEnter(event) {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            form.dispatchEvent(new Event("submit"));
+          }
+        }
+        input.addEventListener("keydown", autoSubmitOnEnter);
+
+        function appendOutput(content) {
+          output.appendChild(content);
+          if (output.scrollTop > output.scrollHeight - output.clientHeight) {
+            output.scrollTop = output.scrollHeight - output.clientHeight;
+          }
+        }
+
+        function submitCommand(event) {
+          event.preventDefault();
+          
+          if (!conn) {
+              return false;
+          }
+          if (!input.value) {
+              return false;
+          }
+          conn.send(input.value);
+          input.value = "";
+          return false;
+        }
+
+        form.addEventListener("submit", submitCommand);
+        
+        if (window["WebSocket"]) {
+            conn = new WebSocket("ws://" + document.location.host + "/socket");
+            conn.onclose = function (evt) {
+                var item = document.createElement("div");
+                item.innerHTML = "<b>Connection closed.</b>";
+                appendOutput(item);
+            };
+            conn.onmessage = function (evt) {
+              var item = document.createElement("div");
+              item.textContent = evt.data
+              appendOutput(item);
+            };
+        } else {
+            var item = document.createElement("div");
+            item.innerHTML = "<b>Your browser does not support WebSockets.</b>";
+            appendOutput(item);
+        }
+
+        output.addEventListener("click", () => input.focus());
+
+        autoResize();
+
+      }
+    </script>
+</head>
+<body>
+  <div class="app">
+    <div class="output" id="output">
+      <!-- streaming text goes here -->
+    </div>
+
+    <form class="input-wrapper" id="form">
+      <textarea id="input" autofocus placeholder="Type your command..."></textarea>
+      <input type="submit" value="Send" />
+    </form>
+  </div>
+</body>

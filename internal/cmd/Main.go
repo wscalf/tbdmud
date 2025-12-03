@@ -10,6 +10,7 @@ import (
 	"github.com/wscalf/tbdmud/internal/net"
 	"github.com/wscalf/tbdmud/internal/scripting"
 	"github.com/wscalf/tbdmud/internal/storage"
+	"github.com/wscalf/tbdmud/web"
 )
 
 func main() {
@@ -72,7 +73,7 @@ func main() {
 	listeners := net.NewAggregateClientListener()
 	telnetListener := net.NewTelnetListener(telnetPort)
 	listeners.AddListener(telnetListener)
-	web := net.NewWeb()
+	web := web.NewWeb()
 	listeners.AddListener(web.Listener())
 
 	commands := game.NewCommands()

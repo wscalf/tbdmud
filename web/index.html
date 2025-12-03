@@ -71,7 +71,7 @@
 
         function appendOutput(content) {
           output.appendChild(content);
-          if (output.scrollTop > output.scrollHeight - output.clientHeight) {
+          if (output.scrollTop < output.scrollHeight - output.clientHeight) {
             output.scrollTop = output.scrollHeight - output.clientHeight;
           }
         }

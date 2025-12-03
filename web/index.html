@@ -101,7 +101,7 @@
             };
             conn.onmessage = function (evt) {
               var item = document.createElement("div");
-              item.textContent = evt.data
+              item.innerHTML = evt.data
               appendOutput(item);
             };
         } else {

@@ -70,10 +70,16 @@ func main() {
 
 	login := game.NewLogin(meta.Banner, layouts["player"], store)
 
+	webUserContent, err := loader.GetWebUserContent()
+	if err != nil {
+		slog.Error("Failed to load web user content. Web client experience may be degraded.", "error", err)
+		webUserContent = map[string][]byte{}
+	}
+
 	listeners := net.NewAggregateClientListener()
 	telnetListener := net.NewTelnetListener(telnetPort)
 	listeners.AddListener(telnetListener)
-	web := web.NewWeb()
+	web := web.NewWeb(webUserContent)
 	listeners.AddListener(web.Listener())
 
 	commands := game.NewCommands()

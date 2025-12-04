@@ -1,0 +1,20 @@
+.output {
+    padding: 0.5rem;
+    background: #111;
+    color: #ddd;
+    font-family: monospace;
+}
+
+.input-wrapper {
+    padding: 0.5rem;
+    border-top: 1px solid #444;
+}
+
+.input-wrapper textarea {
+    font-family: monospace;
+    font-size: 1rem;
+
+    min-height: 1.8em;     /* looks like a single-line input initially */
+    line-height: 1.2;
+    padding: 0.25rem 0.4rem;
+}

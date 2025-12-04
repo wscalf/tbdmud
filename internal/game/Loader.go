@@ -2,6 +2,7 @@ package game
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"io/fs"
 	"os"
@@ -177,6 +178,36 @@ type Metadata struct {
 	DefaultPlayerType string `yaml:"player_type"`
 	DefaultRoomType   string `yaml:"room_type"`
 	DefaultLinkType   string `yaml:"link_type"`
+}
+
+func (l *Loader) GetWebUserContent() (map[string][]byte, error) {
+	contents := map[string][]byte{}
+	folder := filepath.Join(l.dataPath, "web")
+	err := filepath.WalkDir(folder, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if d.IsDir() {
+			return nil
+		}
+
+		content, err := os.ReadFile(path)
+		if err != nil {
+			return fmt.Errorf("error reading module path %s: %w", path, err)
+		}
+		relative, err := filepath.Rel(folder, path)
+		if err != nil {
+			return fmt.Errorf("error converting %s to relative path from %s: %w", path, folder, err)
+		}
+		contents[relative] = content
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return contents, nil
 }
 
 func (l *Loader) GetLayouts() (map[string]*text.Layout, error) {

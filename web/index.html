@@ -17,11 +17,7 @@
         flex: 1 1 auto;        /* take all leftover vertical space */
         min-height: 0;         /* IMPORTANT: let it shrink when textarea grows */
         overflow-y: auto;      /* scrollable log area */
-        padding: 0.5rem;
-        background: #111;
-        color: #ddd;
         white-space: pre-wrap;
-        font-family: monospace;
         }
 
         /* INPUT AREA (content-height only) */
@@ -29,25 +25,17 @@
         display: flex;
         flex: 0 0 auto;        /* size to its contents (the textarea) */
         flex-direction: row;
-        padding: 0.5rem;
-        border-top: 1px solid #444;
         }
 
         /* AUTO-GROWING INPUT */
         .input-wrapper textarea {
         width: 100%;
         box-sizing: border-box;
-        font-family: monospace;
-        font-size: 1rem;
-
         resize: none;          /* user doesn’t drag size; we control it */
         overflow: hidden;      /* no inner scrollbar, height grows instead */
-
-        min-height: 1.8em;     /* looks like a single-line input initially */
-        line-height: 1.2;
-        padding: 0.25rem 0.4rem;
         }
     </style>
+    <link rel="stylesheet" type="text/css" href="/user-content/client.css" />
     <script>
       window.onload = function() {
         var conn;

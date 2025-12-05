@@ -1,19 +1,26 @@
-.output {
-    padding: 0.5rem;
+/* Styling that applies to the entire game window */
+html, body {
     background: #111;
     color: #ddd;
     font-family: monospace;
 }
 
+/* Styling that applies to the game output window */
+.output {
+    padding: 0.5rem;
+}
+
+/* Styling that applies to the bottom section - the input box and submit button */
 .input-wrapper {
     padding: 0.5rem;
     border-top: 1px solid #444;
 }
 
+/* Styling that applies specifically to the input box */
 .input-wrapper textarea {
-    font-family: monospace;
+    background-color: #111;
+    color: #ddd;
     font-size: 1rem;
-
     min-height: 1.8em;     /* looks like a single-line input initially */
     line-height: 1.2;
     padding: 0.25rem 0.4rem;

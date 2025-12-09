@@ -75,6 +75,7 @@ func (b *BoltDBStore) FindAccount(name string) (*game.Account, error) {
 		if data != nil {
 			return json.NewDecoder(bytes.NewBuffer(data)).Decode(&saveData)
 		} else {
+			saveData = nil
 			return nil
 		}
 	})

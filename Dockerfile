@@ -24,6 +24,7 @@
     COPY --from=go-builder /app/tbdmud /server/tbdmud
     
     ENV TELNET_PORT=4000
+    ENV HTTP_PORT=8080
     ENV WORLD=/opt/world
 
     VOLUME /opt/world

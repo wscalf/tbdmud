@@ -10,7 +10,7 @@ import (
 	"github.com/wscalf/tbdmud/internal/net"
 	"github.com/wscalf/tbdmud/internal/scripting"
 	"github.com/wscalf/tbdmud/internal/storage"
-	"github.com/wscalf/tbdmud/web"
+	"github.com/wscalf/tbdmud/internal/web"
 )
 
 func main() {

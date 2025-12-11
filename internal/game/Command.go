@@ -7,5 +7,5 @@ import (
 type Command interface {
 	GetDescription() string
 	GetParameters() []parameters.Parameter
-	Execute(player *Player, args map[string]string)
+	Execute(player *Player, args map[string]string, state map[string]any, requeueHandler func()) bool
 }

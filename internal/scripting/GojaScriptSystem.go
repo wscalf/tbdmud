@@ -16,9 +16,10 @@ var ErrUnrecognizedType = errors.New("unrecognized type")
 var bootstrapCode string
 
 type GojaScriptSystem struct {
-	vm                     *goja.Runtime
-	types                  map[string]goja.Value
-	getPersistedProperties goja.Callable
+	vm                         *goja.Runtime
+	types                      map[string]goja.Value
+	getPersistedProperties     goja.Callable
+	currentCommandAsyncContext *GojaAsyncContext
 }
 
 func NewGojaScriptSystem() *GojaScriptSystem {
@@ -54,12 +55,29 @@ func (s *GojaScriptSystem) Wrap(native interface{}, typeName string) (game.Scrip
 }
 
 func (s *GojaScriptSystem) wrap(native interface{}, typeName string) (*goja.Object, error) {
+	native = s.applyDecorator(native)
 	obj, err := s.createObject(typeName)
 	if err != nil {
 		return nil, err
 	}
 	obj.Set("native", native) //Bypass the setter for native pointer so it doesn't try to unwrap it
 	return obj, nil
+}
+
+func (s *GojaScriptSystem) applyDecorator(native any) any {
+	switch n := native.(type) {
+	case *game.Players:
+		return &PlayersWrapper{players: n, system: s}
+	case *game.System:
+		return &SystemWrapper{system: s, sys: n}
+	default:
+		return native
+	}
+}
+
+func (s *GojaScriptSystem) createPromise() *GojaPromiseWrapper {
+	promise, resolve, reject := s.vm.NewPromise()
+	return NewGojaPromiseWrapper(promise, resolve, reject)
 }
 
 func (s *GojaScriptSystem) AddGlobal(name, scriptType string, native interface{}) error {
@@ -178,4 +196,16 @@ func (s *GojaScriptSystem) exportValue(v goja.Value) interface{} {
 	} else {
 		return v.Export()
 	}
+}
+
+func (s *GojaScriptSystem) setCurrentCommandAsyncContext(ctx *GojaAsyncContext) {
+	s.currentCommandAsyncContext = ctx
+}
+
+func (s *GojaScriptSystem) getCurrentCommandAsyncContext() *GojaAsyncContext {
+	return s.currentCommandAsyncContext
+}
+
+func (s *GojaScriptSystem) clearCurrentCommandAsyncContext() {
+	s.currentCommandAsyncContext = nil
 }

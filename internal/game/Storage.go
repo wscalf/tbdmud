@@ -5,4 +5,5 @@ type Storage interface {
 	FindAccount(name string) (*Account, error)
 	CreateOrUpdatePlayer(data *PlayerSaveData) error
 	FindPlayer(id string) (*PlayerSaveData, error)
+	FindPlayerByName(name string) (*PlayerSaveData, error)
 }

@@ -42,11 +42,20 @@ declare class Player {
     Send(format: string, ...args: string[]): void;
     get Items(): MUDObject[];
 }
+declare class PlayerSaveData {
+    private native;
+    get ID(): string;
+    get RoomID(): string;
+    get Name(): string;
+    get Desc(): string;
+    get Vars(): Map<any>;
+}
 declare class _Players {
     private native;
     FindById(id: string): Player | null;
     FindByName(name: string): Player | null;
     All(): Player[];
+    FindByNameIncludingOffline(name: string): Promise<PlayerSaveData>;
 }
 declare const Players: _Players;
 declare let persistedPropertiesByType: Map<Array<string>>;
@@ -62,6 +71,11 @@ declare class Room {
     SendToAllExcept(player: Player, pattern: string, ...args: string[]): void;
     FindPathTo(to: Room, limit: number): Link[] | null;
 }
+declare class _System {
+    private native;
+    Wait(seconds: number): Promise<void>;
+}
+declare const System: _System;
 declare class _World {
     private native;
     FindRoom(id: string): Room | null;

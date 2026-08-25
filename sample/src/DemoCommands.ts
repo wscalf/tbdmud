@@ -21,6 +21,8 @@ class DemoCommands {
     @Command("long-think", "Prints the message after 1 second.", [{name: "message", type: "freetext", required: true}])
     static async longThink(player: DemoPlayer, message: string) {
         await System.Wait(1);
+        await System.Wait(1);
+        await System.Wait(1);
         player.Send(message);
     }
 

@@ -77,6 +77,14 @@ func (c *GojaScriptCommand) Execute(player *game.Player, args map[string]string,
 			slog.Error("error on resume", "err", err, "cmd", c.name, "args", args, "context", asyncContext)
 			return true
 		}
-		return isDone(promise)
+		switch promise.State() {
+		case goja.PromiseStateFulfilled:
+			return true
+		case goja.PromiseStateRejected:
+			slog.Error("async script error", "err", promise.Result(), "cmd", c.name, "args", args, "context", asyncContext)
+			return true
+		default:
+			return false
+		}
 	}
 }

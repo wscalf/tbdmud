@@ -27,6 +27,14 @@ func (c *GojaAsyncContext) SetError(err error) {
 	c.requeue()
 }
 
+func (c *GojaAsyncContext) GetResult() any {
+	if c.err != nil {
+		return c.err
+	} else {
+		return c.promise.promise.Result()
+	}
+}
+
 func (c *GojaAsyncContext) Resolve() error {
 	if c.err != nil {
 		return c.promise.Reject(c.err)

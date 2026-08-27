@@ -25,6 +25,11 @@ class _Players {
 
         return players;
     }
+
+    public async FindByNameIncludingOffline(name: string): Promise<PlayerSaveData> {
+        let p: any = await this.native.FindByNameIncludingOffline(name);
+        return new PlayerSaveData();
+    }
 }
 
 declare const Players: _Players

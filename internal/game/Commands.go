@@ -51,6 +51,8 @@ func (c *Commands) Prepare(p *Player, input string) (Job, error) {
 	}
 
 	return &commandJob{
+		BaseJob: NewBaseJob(),
+		state:   make(map[string]any),
 		command: command,
 		player:  p,
 		params:  parameters,
@@ -88,11 +90,14 @@ func SplitCommandNameFromArgs(input string) (string, string) {
 }
 
 type commandJob struct {
+	BaseJob
+	state   map[string]any
 	command Command
 	player  *Player
 	params  map[string]string
 }
 
 func (c *commandJob) Run() {
-	c.command.Execute(c.player, c.params)
+	//Need a mechanism to both pass the requeue callback down and get whether or not the command is done back
+	c.done = c.command.Execute(c.player, c.params, c.state, c.handler)
 }

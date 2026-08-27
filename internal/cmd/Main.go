@@ -38,7 +38,7 @@ func main() {
 	loader := game.NewLoader(worldPath)
 	world := game.NewWorld()
 
-	players := game.NewPlayers()
+	players := game.NewPlayers(store)
 
 	scriptSystem, err := initializeScripting(loader, world, players)
 	if err != nil {
@@ -83,7 +83,7 @@ func main() {
 	listeners.AddListener(web.Listener())
 
 	commands := game.NewCommands()
-	commands.RegisterBuiltins(layouts)
+	commands.RegisterBuiltins(layouts, players)
 
 	scriptSystem.RegisterCommands(commands)
 
@@ -111,6 +111,8 @@ func initializeScripting(loader *game.Loader, world *game.World, players *game.P
 	if err != nil {
 		return nil, fmt.Errorf("error executing engine.js: %w", err)
 	}
+
+	system.AddGlobal("System", "_System", game.NewSystem())
 
 	moduleCode, err := loader.ReadModuleTextFile("module.js")
 	if err != nil {

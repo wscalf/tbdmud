@@ -13,6 +13,7 @@ class Player {
     }
 
     Send(format: string, ...args: string[]) {
+        Log.Debug("Sending a message to: " + this.Name);
         this.native.Sendf(format, ...args)
     }
 

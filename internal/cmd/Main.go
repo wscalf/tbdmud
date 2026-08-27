@@ -14,6 +14,8 @@ import (
 )
 
 func main() {
+	slog.SetLogLoggerLevel(slog.LevelDebug)
+
 	telnetPortValue := os.Getenv("TELNET_PORT")
 	telnetPort, err := strconv.Atoi(telnetPortValue)
 	if err != nil {
@@ -117,15 +119,22 @@ func initializeScripting(loader *game.Loader, world *game.World, players *game.P
 		return nil, fmt.Errorf("error reading module.js: %w", err)
 	}
 
-	err = system.AddGlobal("World", "_World", world)
+	log := game.NewLog()
+	_, err = system.AddGlobal("Log", "_Log", log)
+	if err != nil {
+		return nil, fmt.Errorf("error binding Log global: %w", err)
+	}
+
+	_, err = system.AddGlobal("World", "_World", world)
 	if err != nil {
 		return nil, fmt.Errorf("error binding World global: %w", err)
 	}
 
-	err = system.AddGlobal("Players", "_Players", players)
+	playersScript, err := system.AddGlobal("Players", "_Players", players)
 	if err != nil {
 		return nil, fmt.Errorf("error binding Players global: %w", err)
 	}
+	players.AttachScript(playersScript)
 
 	err = system.Run(moduleCode)
 	if err != nil {

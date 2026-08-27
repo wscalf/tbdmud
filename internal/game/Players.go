@@ -1,8 +1,11 @@
 package game
 
+import "log/slog"
+
 type Players struct {
 	idToPlayer map[string]*Player
 	nameToId   map[string]string
+	script     ScriptObject
 }
 
 func NewPlayers() *Players {
@@ -12,12 +15,28 @@ func NewPlayers() *Players {
 	}
 }
 
+func (p *Players) AttachScript(script ScriptObject) {
+	p.script = script
+}
+
 func (p *Players) Add(player *Player) {
 	p.nameToId[player.Name] = player.ID
 	p.idToPlayer[player.ID] = player
+
+	if p.script != nil {
+		if _, err := p.script.Call("_on_player_joined", player); err != nil {
+			slog.Error("script error processing player joined event", "player", player.Name, "error", err)
+		}
+	}
 }
 
 func (p *Players) Remove(player *Player) {
+	if p.script != nil {
+		if _, err := p.script.Call("_on_player_leaving", player); err != nil {
+			slog.Error("script error processing player disconnecting event", "player", player.Name, "error", err)
+		}
+	}
+
 	delete(p.idToPlayer, player.ID)
 	delete(p.nameToId, player.Name)
 }

@@ -3,6 +3,7 @@ package game
 import (
 	"errors"
 	"log/slog"
+	"sync"
 
 	"github.com/wscalf/tbdmud/internal/text"
 )
@@ -72,16 +73,14 @@ func (g *Game) handlePlayersJoining() {
 			p := NewPlayer(data.ID, data.Name)
 			p.Description = data.Desc
 
-			g.players.Add(p)
 			p.AttachClient(client)
-			p.SetInputHandler(g.handleCommand)
 			p.SetLayout(g.login.defaultPlayerLayout)
 
-			g.jobQueue.Enqueue(JoinWorldJob{
-				player: p,
-				data:   data,
-				game:   g,
-			})
+			joinWorldJob := newJoinWorldJob(p, data, g)
+			g.jobQueue.Enqueue(joinWorldJob)
+			joinWorldJob.WaitForCompletion()
+
+			g.players.Add(p)
 
 			p.Run()
 			data, err = p.GetSaveData() //Probably shouldn't keep the data object around for the whole player session - consider some scoping
@@ -102,13 +101,27 @@ func (g *Game) handlePlayersJoining() {
 	}
 }
 
+func newJoinWorldJob(player *Player, data *PlayerSaveData, game *Game) *JoinWorldJob {
+	j := &JoinWorldJob{
+		player: player,
+		data:   data,
+		game:   game,
+		wg:     sync.WaitGroup{},
+	}
+
+	j.wg.Add(1)
+
+	return j
+}
+
 type JoinWorldJob struct {
 	player *Player
 	data   *PlayerSaveData
 	game   *Game
+	wg     sync.WaitGroup
 }
 
-func (j JoinWorldJob) Run() {
+func (j *JoinWorldJob) Run() {
 	script, err := _scriptSystem.Wrap(j.player, j.game.defaultPlayerType)
 	if err != nil {
 		slog.Error("error wrapping character script", "err", err, "script", j.game.defaultPlayerType)
@@ -130,6 +143,11 @@ func (j JoinWorldJob) Run() {
 		j.player.Join(j.game.world.chargen)
 	}
 	j.player.SetInputHandler(j.game.handleCommand)
+	j.wg.Done()
+}
+
+func (j *JoinWorldJob) WaitForCompletion() {
+	j.wg.Wait()
 }
 
 func (g *Game) handleCommand(player *Player, cmd string) {

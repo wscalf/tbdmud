@@ -25,6 +25,16 @@ class _Players {
 
         return players;
     }
+
+    private _on_player_joined(player: Player) {
+        this.Connected.emit(player);
+    }
+    public Connected: Signal<[Player]> = new Signal();
+
+    private _on_player_leaving(player: Player) {
+        this.Disconnecting.emit(player);
+    }
+    public Disconnecting: Signal<[Player]> = new Signal();
 }
 
 declare const Players: _Players

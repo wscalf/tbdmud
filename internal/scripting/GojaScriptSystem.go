@@ -62,13 +62,15 @@ func (s *GojaScriptSystem) wrap(native interface{}, typeName string) (*goja.Obje
 	return obj, nil
 }
 
-func (s *GojaScriptSystem) AddGlobal(name, scriptType string, native interface{}) error {
-	scriptObj, err := s.wrap(native, scriptType)
+func (s *GojaScriptSystem) AddGlobal(name, scriptType string, native interface{}) (game.ScriptObject, error) {
+	obj, err := s.wrap(native, scriptType)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return s.vm.Set(name, scriptObj)
+	scriptObj := newGojaScriptObject(obj, s, scriptType)
+
+	return scriptObj, s.vm.Set(name, obj)
 }
 
 func (s *GojaScriptSystem) populateKnownTypes() {

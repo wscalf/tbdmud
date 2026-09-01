@@ -1,6 +1,10 @@
 class Player {
     private native: any
 
+    get ID(): string {
+        return this.native.ID;
+    }
+
     get Name(): string {
         return this.native.Name;
     }
@@ -13,6 +17,7 @@ class Player {
     }
 
     Send(format: string, ...args: string[]) {
+        Log.Debug("Sending a message to: " + this.Name);
         this.native.Sendf(format, ...args)
     }
 

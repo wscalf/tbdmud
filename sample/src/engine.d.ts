@@ -11,6 +11,14 @@ declare type CommandRef = {
 };
 declare const commands: CommandRef[];
 declare function Command(name: string, desc: string, params: Parameter[]): (target: any, key: string, descriptor: PropertyDescriptor) => void;
+declare class Dict<T> {
+    private data;
+    has(key: string): boolean;
+    get(key: string): T;
+    set(key: string, value: T): void;
+    remove(key: string): void;
+    forEach(callback: (key: string, value: T) => void): void;
+}
 declare function extractJSObj(native: any): any;
 declare class Link {
     private native;
@@ -20,6 +28,11 @@ declare class Link {
     Peek(): Room;
     Move(player: Player, to: Room): void;
 }
+declare class _Log {
+    native: any;
+    Debug(format: string, ...args: string[]): void;
+}
+declare const Log: _Log;
 declare class MUDObject {
     private native;
     get Name(): string;
@@ -27,15 +40,9 @@ declare class MUDObject {
     get Desc(): string;
     set Desc(value: string);
 }
-declare class Map<T> {
-    private data;
-    has(key: string): boolean;
-    get(key: string): T;
-    set(key: string, value: T): void;
-    remove(key: string): void;
-}
 declare class Player {
     private native;
+    get ID(): string;
     get Name(): string;
     set Name(value: string);
     get Room(): Room;
@@ -47,9 +54,13 @@ declare class _Players {
     FindById(id: string): Player | null;
     FindByName(name: string): Player | null;
     All(): Player[];
+    private _on_player_joined;
+    Connected: Signal<[Player]>;
+    private _on_player_leaving;
+    Disconnecting: Signal<[Player]>;
 }
 declare const Players: _Players;
-declare let persistedPropertiesByType: Map<Array<string>>;
+declare let persistedPropertiesByType: Dict<Array<string>>;
 declare function persist(): (proto: any, member: string) => void;
 declare function getPersistedProperties(typeName: string): Array<string>;
 declare class Room {
@@ -61,6 +72,12 @@ declare class Room {
     SendToAll(pattern: string, ...args: string[]): void;
     SendToAllExcept(player: Player, pattern: string, ...args: string[]): void;
     FindPathTo(to: Room, limit: number): Link[] | null;
+}
+declare class Signal<TArgs extends any[]> {
+    private handlers;
+    connect(handler: (...args: TArgs) => void): void;
+    disconnect(handler: (...args: TArgs) => void): void;
+    emit(...args: TArgs): void;
 }
 declare class _World {
     private native;

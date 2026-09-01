@@ -11,6 +11,14 @@ declare type CommandRef = {
 };
 declare const commands: CommandRef[];
 declare function Command(name: string, desc: string, params: Parameter[]): (target: any, key: string, descriptor: PropertyDescriptor) => void;
+declare class Dict<T> {
+    private data;
+    has(key: string): boolean;
+    get(key: string): T;
+    set(key: string, value: T): void;
+    remove(key: string): void;
+    forEach(callback: (key: string, value: T) => void): void;
+}
 declare function extractJSObj(native: any): any;
 declare class Link {
     private native;
@@ -32,15 +40,9 @@ declare class MUDObject {
     get Desc(): string;
     set Desc(value: string);
 }
-declare class Map<T> {
-    private data;
-    has(key: string): boolean;
-    get(key: string): T;
-    set(key: string, value: T): void;
-    remove(key: string): void;
-}
 declare class Player {
     private native;
+    get ID(): string;
     get Name(): string;
     set Name(value: string);
     get Room(): Room;
@@ -58,7 +60,7 @@ declare class _Players {
     Disconnecting: Signal<[Player]>;
 }
 declare const Players: _Players;
-declare let persistedPropertiesByType: Map<Array<string>>;
+declare let persistedPropertiesByType: Dict<Array<string>>;
 declare function persist(): (proto: any, member: string) => void;
 declare function getPersistedProperties(typeName: string): Array<string>;
 declare class Room {

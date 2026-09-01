@@ -1,6 +1,6 @@
-/// <reference path="Map.ts" />
+/// <reference path="Dict.ts" />
 
-let persistedPropertiesByType: Map<Array<string>> = new Map<Array<string>>();
+let persistedPropertiesByType: Dict<Array<string>> = new Dict<Array<string>>();
 
 function persist()
 {

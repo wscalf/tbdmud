@@ -24,7 +24,17 @@ jobs:
       with:
         node-version: 18
         package-manager-cache: false # Disable automatic npm caching if not required
-        
+    - name: Diagnose TypeScript
+      run: |
+        echo "Global TypeScript:"
+        tsc --version || true
+
+        echo "Project TypeScript:"
+        cd runtime
+        ./node_modules/.bin/tsc --version
+
+        echo "Installed dependencies:"
+        npm ls typescript
     - name: Build
       run: make build
 

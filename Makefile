@@ -1,4 +1,7 @@
 NAME=tbdmud
+TSC=runtime/node_modules/.bin/tsc
+init:
+	cd runtime && npm install
 
 build: scripting
 	mkdir -p bin && go build -o bin/$(NAME) internal/cmd/Main.go
@@ -7,12 +10,12 @@ build-debug: scripting
 	mkdir -p bin && go build -o bin/$(NAME) -gcflags "all=-N -l" internal/cmd/Main.go
 
 scripting:
-	tsc --project runtime/tsconfig.json 
+	$(TSC) --project runtime/tsconfig.json 
 	cp runtime/dist/engine.js ./internal/scripting
 	cp runtime/dist/engine.d.ts ./sample/src
 
 module:
-	tsc --project ./sample/src
+	$(TSC) --project ./sample/src
 
 all: build module
 

@@ -1,9 +1,9 @@
-declare type Parameter = {
+type Parameter = {
     name: string;
     required: boolean;
     type: "name" | "freetext";
 };
-declare type CommandRef = {
+type CommandRef = {
     name: string;
     desc: string;
     params: Parameter[];
